@@ -9,8 +9,8 @@ def get_norm_stats(
     """Returns normalization stats (mean and std) computed across one or more image dataloaders.
 
     Attributes:
-
-        loaders : list of pytorch dataloaders
+        - loaders : list of pytorch dataloaders
+        - test
 
     Returns:
         list of stats as pytorch tensors
