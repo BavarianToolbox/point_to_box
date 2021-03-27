@@ -5,8 +5,8 @@ __all__ = ['get_norm_stats', 'draw_rect', 'convert_cords']
 # Cell
 def get_norm_stats(
     loaders : list # list of pytorch dataloaders
-):
-    """Returns normalization stats (mean and std) computed across one or more image dataset.
+) -> list:
+    """Returns normalization stats (mean and std) computed across one or more image dataloaders.
 
     Attributes:
         loaders : list of pytorch dataloaders
