@@ -43,14 +43,14 @@ nb_path: "nbs/00_utils.ipynb"
 <h4 id="get_norm_stats" class="doc_header"><code>get_norm_stats</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L6" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_norm_stats</code>(<strong><code>loaders</code></strong>)</p>
 </blockquote>
 <p>Returns normalization stats (mean and std) computed across one or more image dataloaders.</p>
-<p>Attributes:</p>
+<p><strong>Parameters</strong></p>
 
-<pre><code>- loaders : list of pytorch dataloaders
-- test
+<pre><code>loaders : list of pytorch dataloaders
 
 </code></pre>
-<p>Returns:
-    list of stats as pytorch tensors</p>
+<p><strong>Returns</strong></p>
+
+<pre><code>list of stats as pytorch tensors</code></pre>
 
 </div>
 
@@ -97,24 +97,24 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="draw_rect" class="doc_header"><code>draw_rect</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L36" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>draw_rect</code>(<strong><code>im</code></strong>, <strong><code>cords</code></strong>, <strong><code>box_format</code></strong>=<em><code>None</code></em>, <strong><code>color</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="draw_rect" class="doc_header"><code>draw_rect</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L35" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>draw_rect</code>(<strong><code>im</code></strong>, <strong><code>cords</code></strong>, <strong><code>box_format</code></strong>=<em><code>None</code></em>, <strong><code>color</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>Draw one or more rectangls on an image.</p>
-<h2 id="Parameters">Parameters<a class="anchor-link" href="#Parameters"> </a></h2><p>im : numpy.ndarray
-    numpy image</p>
-<p>cords : numpy.ndarray
-    Numpy array containing bounding boxes of shape <code>N X 4</code>
-    where N is the number of bounding boxes</p>
-<p>box_format : str
-    String indicating bbox-coordinate format
-    coco     : [xmin, ymin, w, h]
-    cnt_ofst : [xofst, yofst, w, h]
-    *_frac   : as fraction of image width/height
-    None     : [xmin, ymin, xmax, ymax]</p>
-<p>color : list
-    List of one or more colors as [R, G, B] lists</p>
-<h2 id="Returns">Returns<a class="anchor-link" href="#Returns"> </a></h2><p>numpy.ndarray
-    numpy image with bounding boxes drawn on it</p>
+<p><strong>Parameters</strong></p>
+<p>im : numpy image [W, H, C]</p>
+<p>cords : Numpy array containing N bounding boxes [N, 4]</p>
+<p>box_format : String indicating bbox-coordinate format</p>
+
+<pre><code>    - coco     : [xmin, ymin, w, h]
+    - cnt_ofst : [xofst, yofst, w, h]
+    - *_frac   : as fraction of image width/height
+    - None     : [xmin, ymin, xmax, ymax]
+
+
+</code></pre>
+<p>color : List of one or more colors [[R, G, B]]</p>
+<p><strong>Returns</strong></p>
+<p>numpy image with bounding boxes drawn on it [W, H, C]</p>
 
 </div>
 
@@ -161,23 +161,21 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="convert_cords" class="doc_header"><code>convert_cords</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L128" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>convert_cords</code>(<strong><code>xmin</code></strong>, <strong><code>ymin</code></strong>, <strong><code>w</code></strong>, <strong><code>h</code></strong>, <strong><code>imgw</code></strong>, <strong><code>imgh</code></strong>, <strong><code>cord_format</code></strong>)</p>
+<h4 id="convert_cords" class="doc_header"><code>convert_cords</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L120" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>convert_cords</code>(<strong><code>cords</code></strong>, <strong><code>img_dims</code></strong>, <strong><code>cord_format</code></strong>)</p>
 </blockquote>
 <p>Convert bounding box coordinates</p>
-<h2 id="Parameters">Parameters<a class="anchor-link" href="#Parameters"> </a></h2><p>cords : list
-    list of bbox coordinates in coco format:
-    [xmin, ymin, w, h]</p>
-<p>img_dims : list | tuple
-    Image dimensions as list or tuple</p>
-<p>cord_format : string
-    Coordinate conversion format
-    cnt_ofst         : [xofst, yofst, w, h]
-    cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of
-                       image width/height
-    corner_ofst_frac : [xmin, min, w, h] as fraction of
-                        image width/height</p>
-<h2 id="Returns">Returns<a class="anchor-link" href="#Returns"> </a></h2><p>list
-    List of converted box coordinates</p>
+<p><strong>Parameters</strong></p>
+<p>cords : list of bbox coordinates [xmin, ymin, w, h]</p>
+<p>img_dims : Image dimensions as list or tuple</p>
+<p>cord_format : Coordinate conversion format</p>
+
+<pre><code>    - cnt_ofst         : [xofst, yofst, w, h]
+    - cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of image width/height
+    - corner_ofst_frac : [xmin, min, w, h] as fraction of image width/height
+
+</code></pre>
+<p><strong>Returns</strong></p>
+<p>List of converted box coordinates</p>
 
 </div>
 

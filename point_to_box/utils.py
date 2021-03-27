@@ -3,16 +3,15 @@
 __all__ = ['get_norm_stats', 'draw_rect', 'convert_cords']
 
 # Cell
-def get_norm_stats(
-    loaders # list of pytorch dataloaders
-) -> list:
+def get_norm_stats(loaders) -> list:
     """Returns normalization stats (mean and std) computed across one or more image dataloaders.
 
-    Attributes:
-        - loaders : list of pytorch dataloaders
-        - test
+    **Parameters**
 
-    Returns:
+        loaders : list of pytorch dataloaders
+
+    **Returns**
+
         list of stats as pytorch tensors
 
     """
@@ -37,32 +36,25 @@ def draw_rect(im, cords, box_format = None, color = None):
     """
     Draw one or more rectangls on an image.
 
-    Parameters
-    ----------
+    **Parameters**
 
-    im : numpy.ndarray
-        numpy image
+    im : numpy image [W, H, C]
 
-    cords : numpy.ndarray
-        Numpy array containing bounding boxes of shape `N X 4`
-        where N is the number of bounding boxes
+    cords : Numpy array containing N bounding boxes [N, 4]
 
-    box_format : str
-        String indicating bbox-coordinate format
-        coco     : [xmin, ymin, w, h]
-        cnt_ofst : [xofst, yofst, w, h]
-        *_frac   : as fraction of image width/height
-        None     : [xmin, ymin, xmax, ymax]
+    box_format : String indicating bbox-coordinate format
+
+            - coco     : [xmin, ymin, w, h]
+            - cnt_ofst : [xofst, yofst, w, h]
+            - *_frac   : as fraction of image width/height
+            - None     : [xmin, ymin, xmax, ymax]
 
 
-    color : list
-        List of one or more colors as [R, G, B] lists
+    color : List of one or more colors [[R, G, B]]
 
-    Returns
-    -------
+    **Returns**
 
-    numpy.ndarray
-        numpy image with bounding boxes drawn on it
+    numpy image with bounding boxes drawn on it [W, H, C]
 
     """
     if color:
@@ -125,33 +117,25 @@ def draw_rect(im, cords, box_format = None, color = None):
     return im
 
 # Cell
-def convert_cords(xmin, ymin, w, h, imgw, imgh, cord_format):
+def convert_cords(cords, img_dims, cord_format):
     """
     Convert bounding box coordinates
 
-    Parameters
-    ----------
+    **Parameters**
 
-    cords : list
-        list of bbox coordinates in coco format:
-        [xmin, ymin, w, h]
+    cords : list of bbox coordinates [xmin, ymin, w, h]
 
-    img_dims : list | tuple
-        Image dimensions as list or tuple
+    img_dims : Image dimensions as list or tuple
 
-    cord_format : string
-        Coordinate conversion format
-        cnt_ofst         : [xofst, yofst, w, h]
-        cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of
-                           image width/height
-        corner_ofst_frac : [xmin, min, w, h] as fraction of
-                            image width/height
+    cord_format : Coordinate conversion format
 
-    Returns
-    -------
+            - cnt_ofst         : [xofst, yofst, w, h]
+            - cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of image width/height
+            - corner_ofst_frac : [xmin, min, w, h] as fraction of image width/height
 
-    list
-        List of converted box coordinates
+    **Returns**
+
+    List of converted box coordinates
 
     """
     box_cntr = (xmin + (w/2), ymin + (h/2))
