@@ -44,13 +44,9 @@ nb_path: "nbs/00_utils.ipynb"
 </blockquote>
 <p>Returns normalization stats (mean and std) computed across one or more image dataloaders.</p>
 <p><strong>Parameters</strong></p>
-
-<pre><code>loaders : list of pytorch dataloaders
-
-</code></pre>
+<p>loaders : list of pytorch dataloaders</p>
 <p><strong>Returns</strong></p>
-
-<pre><code>list of stats as pytorch tensors</code></pre>
+<p>list of stats as pytorch tensors</p>
 
 </div>
 
@@ -105,10 +101,10 @@ nb_path: "nbs/00_utils.ipynb"
 <p>cords : Numpy array containing N bounding boxes [N, 4]</p>
 <p>box_format : String indicating bbox-coordinate format</p>
 
-<pre><code>    - coco     : [xmin, ymin, w, h]
-    - cnt_ofst : [xofst, yofst, w, h]
-    - *_frac   : as fraction of image width/height
-    - None     : [xmin, ymin, xmax, ymax]
+<pre><code>- coco     : [xmin, ymin, w, h]
+- cnt_ofst : [xofst, yofst, w, h]
+- *_frac   : as fraction of image width/height
+- None     : [xmin, ymin, xmax, ymax]
 
 
 </code></pre>
@@ -168,12 +164,11 @@ nb_path: "nbs/00_utils.ipynb"
 <p>cords : list of bbox coordinates [xmin, ymin, w, h]</p>
 <p>img_dims : Image dimensions as list or tuple</p>
 <p>cord_format : Coordinate conversion format</p>
-
-<pre><code>    - cnt_ofst         : [xofst, yofst, w, h]
-    - cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of image width/height
-    - corner_ofst_frac : [xmin, min, w, h] as fraction of image width/height
-
-</code></pre>
+<ul>
+<li>cnt_ofst         : [xofst, yofst, w, h]</li>
+<li>cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of image width/height</li>
+<li>corner_ofst_frac : [xmin, min, w, h] as fraction of image width/height</li>
+</ul>
 <p><strong>Returns</strong></p>
 <p>List of converted box coordinates</p>
 

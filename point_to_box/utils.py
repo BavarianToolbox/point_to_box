@@ -8,11 +8,11 @@ def get_norm_stats(loaders) -> list:
 
     **Parameters**
 
-        loaders : list of pytorch dataloaders
+    loaders : list of pytorch dataloaders
 
     **Returns**
 
-        list of stats as pytorch tensors
+    list of stats as pytorch tensors
 
     """
     mean = 0.
@@ -44,10 +44,10 @@ def draw_rect(im, cords, box_format = None, color = None):
 
     box_format : String indicating bbox-coordinate format
 
-            - coco     : [xmin, ymin, w, h]
-            - cnt_ofst : [xofst, yofst, w, h]
-            - *_frac   : as fraction of image width/height
-            - None     : [xmin, ymin, xmax, ymax]
+        - coco     : [xmin, ymin, w, h]
+        - cnt_ofst : [xofst, yofst, w, h]
+        - *_frac   : as fraction of image width/height
+        - None     : [xmin, ymin, xmax, ymax]
 
 
     color : List of one or more colors [[R, G, B]]
@@ -129,9 +129,9 @@ def convert_cords(cords, img_dims, cord_format):
 
     cord_format : Coordinate conversion format
 
-            - cnt_ofst         : [xofst, yofst, w, h]
-            - cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of image width/height
-            - corner_ofst_frac : [xmin, min, w, h] as fraction of image width/height
+    - cnt_ofst         : [xofst, yofst, w, h]
+    - cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of image width/height
+    - corner_ofst_frac : [xmin, min, w, h] as fraction of image width/height
 
     **Returns**
 
