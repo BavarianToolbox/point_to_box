@@ -44,10 +44,10 @@ def draw_rect(im, cords, box_format = None, color = None):
 
     box_format : String indicating bbox-coordinate format
 
-        - coco     : [xmin, ymin, w, h]
-        - cnt_ofst : [xofst, yofst, w, h]
-        - *_frac   : as fraction of image width/height
-        - None     : [xmin, ymin, xmax, ymax]
+     - coco     : [xmin, ymin, w, h]
+     - cnt_ofst : [xofst, yofst, w, h]
+     - *_frac   : as fraction of image width/height
+     - None     : [xmin, ymin, xmax, ymax]
 
 
     color : List of one or more colors [[R, G, B]]

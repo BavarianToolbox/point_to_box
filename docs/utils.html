@@ -100,14 +100,12 @@ nb_path: "nbs/00_utils.ipynb"
 <p>im : numpy image [W, H, C]</p>
 <p>cords : Numpy array containing N bounding boxes [N, 4]</p>
 <p>box_format : String indicating bbox-coordinate format</p>
-
-<pre><code>- coco     : [xmin, ymin, w, h]
-- cnt_ofst : [xofst, yofst, w, h]
-- *_frac   : as fraction of image width/height
-- None     : [xmin, ymin, xmax, ymax]
-
-
-</code></pre>
+<ul>
+<li>coco     : [xmin, ymin, w, h]</li>
+<li>cnt_ofst : [xofst, yofst, w, h]</li>
+<li>*_frac   : as fraction of image width/height</li>
+<li>None     : [xmin, ymin, xmax, ymax]</li>
+</ul>
 <p>color : List of one or more colors [[R, G, B]]</p>
 <p><strong>Returns</strong></p>
 <p>numpy image with bounding boxes drawn on it [W, H, C]</p>
