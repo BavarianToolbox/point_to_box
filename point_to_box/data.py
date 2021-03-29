@@ -111,12 +111,19 @@ class ConversionDataset():
         **Params**
 
         data_path : path to data directory as Pathlib object
+
         anno_fname : name of coco-style JSON annotation file
+
         dst_path : destination path for new dataset and annotation file
+
         crop_size : size of the square crops taken from the original images
+
         crop_noise : percentage of possible crop size noise
+
         resize : bool indicating whether to resize cropped images
+
         img_size : size of new images is 'resize' is True
+
         box_noise : percentage of possible box noise
 
         """
@@ -167,7 +174,9 @@ class ConversionDataset():
         **Returns**
 
         img : Pillow image
+
         bboxs : list of box coordinates [[xmin, ymin, ]]
+
         cntrs : list of box (object) centers
         """
 
@@ -216,7 +225,9 @@ class ConversionDataset():
         **Params**
 
         val :  int, value to add noise to
+
         size : int, size of relative interval
+
         pct :  float, percent for interval clipping
 
         **Return**
@@ -245,17 +256,25 @@ class ConversionDataset():
         **Params**
 
         img : image to take crops from
+
         bboxs : box coordinates [[xmin,ymin,xmax,ymax]]
+
         cntrr : center box (object) coordinates (x,y)
+
         crop_size : square corp size
+
         crop_noise : percent of noise to add to corp size
+
         img_size : image resz
+
         box_noise : percent of noise to add to box off set
 
         **Return**
 
         imgs_crop :
+
         boxs_crop :
+
         centers_crop :
 
         """

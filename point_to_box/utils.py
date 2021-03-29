@@ -171,12 +171,15 @@ def resize(size, img, bbox):
     **Params**
 
     size : target size for the long-edge of the original image
+
     img : np.ndarray image to be resized, shape HxWxC
+
     bbox : np.ndarray of bounding box coordinates [xmin, ymin, xmax, ymax]
 
     **Returns**
 
     img : resized image as np.ndarray
+
     bbox : resized bounding box np.ndarray [xmin, ymin, xmax, ymax]
 
     """
