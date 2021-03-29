@@ -6,7 +6,7 @@ index = {"get_norm_stats": "00_utils.ipynb",
          "draw_rect": "00_utils.ipynb",
          "convert_cords": "00_utils.ipynb",
          "PTBDataset": "01_data.ipynb",
-         "foo_bar": "01_data.ipynb"}
+         "ConversionDataset": "01_data.ipynb"}
 
 modules = ["utils.py",
            "data.py"]
