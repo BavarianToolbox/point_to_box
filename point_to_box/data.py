@@ -123,7 +123,7 @@ class ConversionDataset():
         self.annos = anno_fname
         self.dst = dst_path
         self.coco, self.full_img_ids = self.load_annos()
-        self.cats = coco.loadCats(coco.getCatIds())
+        self.cats = self.coco.loadCats(self.coco.getCatIds())
         self.crop_size = crop_size
         self.crop_noise = crop_noise
         self.resize = resize
@@ -176,9 +176,9 @@ class ConversionDataset():
         coco_annos = [anno for anno in coco_annos if anno['iscrowd'] == 0]
         num_objs = len(coco_annos)
         # path for image
-        img_path = coco.loadImgs(img_id)[0]['file_name']
+        img_path = self.coco.loadImgs(img_id)[0]['file_name']
         # open image
-        img = Image.open(os.path.join(data_path, img_path))
+        img = Image.open(os.path.join(self.data, img_path))
 
         # Bounding boxes
         # Coco format: [xmin, ymin, width, height]
@@ -200,7 +200,7 @@ class ConversionDataset():
                 ycent = ymin + (coco_annos[i]['bbox'][3]/2)
             cntrs.append([xcent, ycent])
 
-            cat = coco.loadCats(coco_annos[i]['category_id'])
+            cat = self.coco.loadCats(coco_annos[i]['category_id'])
 
             cats.append(cat[0]['name'])
 
