@@ -4,7 +4,7 @@ __all__ = ['PTBDataset', 'ConversionDataset']
 
 # Cell
 #export
-from nbdev.showdoc import *
+import point_to_box.utils as utils
 import torch
 import os
 import numpy as np
@@ -12,10 +12,12 @@ from cv2 import rectangle
 from pycocotools.coco import COCO
 from torch.utils.data import Dataset
 from PIL import Image
+import random
 # import matplotlib.pyplot as plt
 
 # Cell
 class PTBDataset(Dataset):
+    """"""
     def __init__(self, root, annos, box_format, tfms = None, norm_chnls=None, ):
         self.root = root
         self.tfms = tfms
@@ -207,7 +209,7 @@ class ConversionDataset():
         return img, bboxs, cntrs, cats
 
 
-    def noise(self, size, pct = 0.2):
+    def noise(self, val, size, pct = 0.2):
         """
         Add noise to int value
 
@@ -231,7 +233,7 @@ class ConversionDataset():
 
     def crop_objs(self,
         img, bboxs, cntrs,
-        crop_size = 100,
+        inp_crop_size = 100,
         crop_noise = 0.1,
         resize = True,
         img_size = 512,
@@ -262,14 +264,14 @@ class ConversionDataset():
         #   - finish : bottom right corner (w,h)
 
         w, h = img.size
-        assert (crop_size < w and crop_size < h), \
+        assert (inp_crop_size < w and inp_crop_size < h), \
             'crop size is larger than image'
 
         # add noise to corp size
         crop_size = self.noise(
-            val = crop_size,
-            size = crop_size,
-            pct = crop_noise)
+            val = inp_crop_size,
+            size = inp_crop_size,
+            pct = inp_crop_size)
 
         imgs_crop = []
         boxs_crop = []
@@ -278,6 +280,17 @@ class ConversionDataset():
         for box, cntr in zip(bboxs, cntrs):
 
             xmin, ymin, xmax, ymax = box
+            crop_size = inp_crop_size
+
+            # adjust crop size based on size of object box
+            boxw, boxh = xmax - xmin, ymax - ymin
+#             print(f'Box width: {boxw}  Box height: {boxh}')
+
+            # object taking up more than 90% of crop in either dimension
+            if ((0.9 * boxw) > crop_size) or ((0.9 * boxh) > crop_size):
+                # make crop-size larger
+                crop_size = max(boxw, boxh)/(random.uniform(0.4, 0.8))
+#                 print(f'New corp size: {crop_size}')
 
             # copy image for crop
             cimg = img.copy()
@@ -304,13 +317,16 @@ class ConversionDataset():
             # lower = upper + crop_size
             lower = upper + crop_size
 
+#             print('Crop coords')
+#             print(f'Left: {left} Upper: {upper} Right: {right} Lower: {lower}')
+
             # check and correct for out of bounds crop
             if left < 0:
                 left = 0
                 right = left + crop_size
             if upper < 0:
                 upper = 0
-                lower = 0 + crop_size
+                lower = upper + crop_size
             if right > w:
                 right = w
                 left = w - crop_size
@@ -328,14 +344,17 @@ class ConversionDataset():
             bbox = [xmin_crop, ymin_crop,
                     xmax_crop, ymax_crop]
 
+#             print('Crop coords after adjustment')
+#             print(f'Left: {left} Upper: {upper} Right: {right} Lower: {lower}')
+
             # crop expects 4-tupple:
             # (left, upper, right, lower)
             img_crop = img.crop((left, upper, right, lower))
 
             if resize:
-                img_resz, box_resz = (data_aug.Resize(img_size)
-                                          (np.array(img_crop),
-                                           np.array([bbox])))
+                img_resz, box_resz = utils.resize(img_size,
+                                                  np.array(img_crop),
+                                                  np.array([bbox]))
                 # reszd box coords
                 xmi_resz, ymi_resz, xma_resz, yma_resz = box_resz[0]
 
@@ -366,27 +385,29 @@ class ConversionDataset():
             # no resize
             else:
                 imgs_crop.append(np.array(img_crop))
-                boxs_crop.append(bbox)
+                boxs_crop.append(np.array([bbox]))
 
                 # add noise to center point
-                x_cent_crop = noise(
-                    val = (x_max_crop
-                           - x_min_crop)//2,
-                    size = (x_max_crop
-                           - x_min_crop),
+                x_cent_crop = self.noise(
+                    val = (xmax_crop
+                           - xmin_crop)//2,
+                    size = (xmax_crop
+                           - xmin_crop),
                     pct = 0.1
                 )
                 y_cent_crop = self.noise(
-                    val = (y_max_crop
-                          - y_min_crop)//2,
-                    size = (y_max_crop
-                           - y_min_crop),
+                    val = (ymax_crop
+                          - ymin_crop)//2,
+                    size = (ymax_crop
+                           - ymin_crop),
                     pct = 0.1
                 )
                 centers_crop.append(
                     (x_cent_crop,
                      y_cent_crop)
                 )
+
+            # reset cropsize
 
         return imgs_crop, boxs_crop, centers_crop
 
@@ -413,7 +434,7 @@ class ConversionDataset():
             crop_size = 100,
             crop_noise = 0.1,
             box_noise = 0.2,
-            img_size = 224
+            img_size = self.img_size
         )
 
         # loop over crops and save
