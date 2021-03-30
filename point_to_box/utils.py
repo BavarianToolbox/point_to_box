@@ -183,9 +183,6 @@ def resize(size, img, bbox):
     bbox : resized bounding box np.ndarray [xmin, ymin, xmax, ymax]
 
     """
-    imgw, imgh = img.shape[1], img.shape[0]
-#     img = letterbox_image(img, self.inp_dim)
-
 
     img_w, img_h = img.shape[1], img.shape[0]
     w, h = size, size
@@ -194,17 +191,15 @@ def resize(size, img, bbox):
     resized_image = cv2.resize(img, (new_w,new_h))
 
     canvas = np.full((size, size, 3), 0)
-
     canvas[(h-new_h)//2:(h-new_h)//2 + new_h,(w-new_w)//2:(w-new_w)//2 + new_w,  :] = resized_image
 
     img = canvas
 
-    scale = min(size/imgh, size/imgw)
+    scale = min(size/img_h, size/img_w)
     bbox[:,:4] *= (scale)
 
-    new_w = scale*imgw
-    new_h = scale*imgh
-#     inp_dim = self.inp_dim
+    new_w = scale*img_w
+    new_h = scale*img_h
 
     del_h = (size - new_h)/2
     del_w = (size - new_w)/2

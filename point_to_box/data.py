@@ -7,7 +7,9 @@ __all__ = ['PTBDataset', 'ConversionDataset']
 import point_to_box.utils as utils
 import torch
 import os
+import json
 import numpy as np
+from tqdm import tqdm
 from cv2 import rectangle
 from pycocotools.coco import COCO
 from torch.utils.data import Dataset
@@ -104,8 +106,8 @@ class PTBDataset(Dataset):
 class ConversionDataset():
     """Class to convert coco-style datasets and annotations into point-to-box style datasets and annotations"""
     def __init__(self, data_path, anno_fname, dst_path,
-                 crop_size = 100, crop_noise = 0.1,
-                 resize = True, img_size = 512, box_noise = 0.2):
+                 crop_size = 100, crop_noise = 0.1, resize = True,
+                 img_size = 512, box_noise = 0.2, new_anno_fname = None):
         """
 
         **Params**
@@ -138,6 +140,10 @@ class ConversionDataset():
         self.resize = resize
         self.img_size = img_size
         self.box_noise = box_noise
+        if new_anno_fname is None:
+            self.new_annos = 'individual_'+ self.annos
+        else:
+            self.new_annos = new_anno_fname
 
         # running indicies for new imgs and annos
         self.img_idx = 0
@@ -196,6 +202,7 @@ class ConversionDataset():
         bboxs = []
         cntrs = []
         cats = []
+        licenses = []
         for i in range(num_objs):
             xmin = coco_annos[i]['bbox'][0]
             ymin = coco_annos[i]['bbox'][1]
@@ -259,7 +266,7 @@ class ConversionDataset():
 
         bboxs : box coordinates [[xmin,ymin,xmax,ymax]]
 
-        cntrr : center box (object) coordinates (x,y)
+        cntrs : center box (object) coordinates (x,y)
 
         crop_size : square corp size
 
@@ -364,8 +371,18 @@ class ConversionDataset():
                 img_resz, box_resz = utils.resize(img_size,
                     np.array(img_crop), np.array([bbox]))
 
+#                 print(box_resz)
+#                 print(box_resz[0])
+
                 # reszd box coords
                 xmi_resz, ymi_resz, xma_resz, yma_resz = box_resz[0]
+                # clip to image dims
+                if xmi_resz < 0: xmi_resz = 0
+                if ymi_resz < 0: ymi_resz = 0
+                if xma_resz > img_resz.shape[1]: xma_resz = img_resz.shape[1]
+                if yma_resz > img_resz.shape[0]: yma_resz = img_resz.shape[0]
+                box_resz = np.array([[xmi_resz, ymi_resz, xma_resz, yma_resz]])
+#                 print(box_resz)
 
                 # compute box center
                 x_cent_resz = (xmi_resz + (xma_resz - xmi_resz)//2)
@@ -399,6 +416,8 @@ class ConversionDataset():
 
                 centers_crop.append((x_cent_crop,y_cent_crop))
 
+#         print(boxs_crop)
+
         return imgs_crop, boxs_crop, centers_crop
 
 
@@ -420,27 +439,32 @@ class ConversionDataset():
         crop_imgs, crop_bboxs, crop_cntrs = self.crop_objs(
             img = img,
             bboxs = np.array(bboxs),
-            centers = cntrs,
-            crop_size = self.crop_size,
+            cntrs = cntrs,
+            inp_crop_size = self.crop_size,
             crop_noise = self.crop_noise,
             box_noise = self.box_noise,
             img_size = self.img_size
         )
 
+
         # loop over crops and save
-        for new_img, box, cntr, cat in zip(crop_imgs, crop_bboxs,
+        for new_img, npbox, cntr, cat in zip(crop_imgs, crop_bboxs,
                                            crop_cntrs, cats):
             # save img
-            new_img_name = f'img_{self.img_idx}_{cat}_{self.anno_idx}.jpg'
-            new_img_pth = DST/new_img_name
+            new_img_name = f'img_{self.img_idx}_anno_{self.anno_idx}_{cat}_.jpg'
+            new_img_pth = self.dst/new_img_name
             img = Image.fromarray(new_img)
             img.save(new_img_pth)
-            # construct annotation info
 
-            box = box[0]
+            # construct append annotation info to lists
+#             print(f'npbox: {npbox}')
+            box = npbox[0]
+#             print(f'box: {box}')
             w, h = box[2] - box[0], box[3] - box[1]
             area = w * h
             coco_box = [box[0], box[1], w, h]
+
+#             print(f'COCO Box: {coco_box}')
 
             self.new_img_names.append(new_img_name)
             self.new_img_ids.append(self.img_idx)
@@ -456,7 +480,16 @@ class ConversionDataset():
 
     def to_json(self, info = None, licenses = None, categories = None):
         """
-        Convert new annotations into coco-style json
+        Convert new annotations into coco-style json.
+
+        **Params**
+
+        info : 'info' section for COCO-style JSON
+
+        licenses : 'licenses' section for COCO-style JSON
+
+        categories : 'categories' section for COCO-style JSON
+
         """
         if info is None:
             info =  self.coco.dataset['info']
@@ -469,42 +502,43 @@ class ConversionDataset():
 
         images = []
         annotations = []
-        size = self.img_size if Resize else self.crop_size
+        size = self.img_size if self.resize else self.crop_size
         for img_id, img_name, anno_id, box, area, center, cat in zip(
-
             self.new_img_ids, self.new_img_names,
             self.new_anno_ids, self.new_box_annos,
             self.new_areas, self.new_cntrs, self.new_cats):
 
-            images.append(
-                {
-                    'license': license,
-                    'file_name': img_name,
-                    'width': size,
-                    'height': size,
-                    'id': img_id
-                })
+            images.append({
+                'license': 0,
+                'file_name': img_name,
+                'width': size,
+                'height': size,
+                'id': img_id})
 
-            annotations.append(
-                {
-                    'image_id': img_id,
-                    'id': anno_id,
-                    'bbox': box,
-                    'area': area,
-                    'center': center,
-                    'category_id': self.coco.getCatIds(catNms = cat),
-                    'iscrowd': 0
-                }
-            )
+            annotations.append({
+                'image_id': img_id,
+                'id': anno_id,
+                'bbox': box,
+                'area': area,
+                'center': center,
+                'category_id': self.coco.getCatIds(catNms = cat)[0],
+                'iscrowd': 0})
+
+        json_data = {
+            'info': info,
+            'licenses': licenses,
+            'images': images,
+            'annotations': annotations,
+            'categories': categories}
+
+        with open(self.dst/self.new_annos, 'w') as json_file:
+            json.dump(json_data, json_file)
 
 
     def convert_all(self):
         """
-        Loop over all images in priginal dataset and process
-        into individual crops of all objects
+        Convert all photos and annotations in the dataset
         """
-
-        for img_id in self.full_img_ids:
+        for img_id in tqdm(self.full_img_ids):
             self.convert(img_id)
-        # write to json
 
