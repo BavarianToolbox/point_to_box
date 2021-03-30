@@ -17,7 +17,8 @@ import random
 
 # Cell
 class PTBDataset(Dataset):
-    """"""
+    """Point-to-box dataset class compatible with pytorch dataloaders"""
+
     def __init__(self, root, annos, box_format, tfms = None, norm_chnls=None, ):
         self.root = root
         self.tfms = tfms
@@ -101,12 +102,11 @@ class PTBDataset(Dataset):
 
 # Cell
 class ConversionDataset():
-
+    """Class to convert coco-style datasets and annotations into point-to-box style datasets and annotations"""
     def __init__(self, data_path, anno_fname, dst_path,
                  crop_size = 100, crop_noise = 0.1,
                  resize = True, img_size = 512, box_noise = 0.2):
         """
-        Class to convert coco-style datasets and annotations into point-to-box style datasets and annotations
 
         **Params**
 
@@ -220,13 +220,13 @@ class ConversionDataset():
 
     def noise(self, val, size, pct = 0.2):
         """
-        Add noise to int value
+        Add noise to value
 
         **Params**
 
-        val :  int, value to add noise to
+        val :  value to add noise to
 
-        size : int, size of relative interval
+        size : relative size
 
         pct :  float, percent for interval clipping
 
@@ -287,14 +287,10 @@ class ConversionDataset():
             'crop size is larger than image'
 
         # add noise to corp size
-        crop_size = self.noise(
-            val = inp_crop_size,
-            size = inp_crop_size,
-            pct = inp_crop_size)
+        crop_size = self.noise(val = inp_crop_size,
+            size = inp_crop_size, pct = inp_crop_size)
 
-        imgs_crop = []
-        boxs_crop = []
-        centers_crop = []
+        imgs_crop, boxs_crop, centers_crop = [], [], []
 
         for box, cntr in zip(bboxs, cntrs):
 
@@ -309,7 +305,8 @@ class ConversionDataset():
             if ((0.9 * boxw) > crop_size) or ((0.9 * boxh) > crop_size):
                 # make crop-size larger
                 crop_size = max(boxw, boxh)/(random.uniform(0.4, 0.8))
-#                 print(f'New corp size: {crop_size}')
+            # clip to shortest img dimension
+            if crop_size > min(w, h): crop_size = min(w, h)
 
             # copy image for crop
             cimg = img.copy()
@@ -320,16 +317,11 @@ class ConversionDataset():
 
             # add noise so box isn't always
             # exactly in the center of crop
-            left = self.noise(
-                val = left,
-                size = crop_size,
-                pct = box_noise
-            )
-            upper = self.noise(
-                val = upper,
-                size = crop_size,
-                pct = box_noise
-            )
+            left = self.noise(val = left,
+                size = crop_size,pct = box_noise)
+
+            upper = self.noise(val = upper,
+               size = crop_size, pct = box_noise)
 
             # right = left + crop_size
             right = left + crop_size
@@ -360,42 +352,33 @@ class ConversionDataset():
             xmax_crop = (xmax - left) + 1
             ymax_crop = (ymax - upper) + 1
 
-            bbox = [xmin_crop, ymin_crop,
-                    xmax_crop, ymax_crop]
+            bbox = [xmin_crop, ymin_crop, xmax_crop, ymax_crop]
 
 #             print('Crop coords after adjustment')
 #             print(f'Left: {left} Upper: {upper} Right: {right} Lower: {lower}')
 
-            # crop expects 4-tupple:
-            # (left, upper, right, lower)
+            # crop expects 4-tupple: (left, upper, right, lower)
             img_crop = img.crop((left, upper, right, lower))
 
             if resize:
                 img_resz, box_resz = utils.resize(img_size,
-                                                  np.array(img_crop),
-                                                  np.array([bbox]))
+                    np.array(img_crop), np.array([bbox]))
+
                 # reszd box coords
                 xmi_resz, ymi_resz, xma_resz, yma_resz = box_resz[0]
 
                 # compute box center
-                x_cent_resz = (xmi_resz +
-                                (xma_resz - xmi_resz)//2)
-                y_cent_resz = (ymi_resz +
-                                (yma_resz - ymi_resz)//2)
+                x_cent_resz = (xmi_resz + (xma_resz - xmi_resz)//2)
+                y_cent_resz = (ymi_resz + (yma_resz - ymi_resz)//2)
 
                 # add noise to center point
-                x_cent_resz = self.noise(
-                    val = x_cent_resz,
-                    size = (xma_resz - xmi_resz),
-                    pct = 0.1
-                )
-                y_cent_resz = self.noise(
-                    val = y_cent_resz,
-                    size = (yma_resz - ymi_resz),
-                    pct = 0.1
-                )
-                center_resz = (x_cent_resz,
-                                 y_cent_resz)
+                x_cent_resz = self.noise(val = x_cent_resz,
+                    size = (xma_resz - xmi_resz), pct = 0.1)
+
+                y_cent_resz = self.noise(val = y_cent_resz,
+                    size = (yma_resz - ymi_resz), pct = 0.1)
+
+                center_resz = (x_cent_resz, y_cent_resz)
 
                 imgs_crop.append(img_resz)
                 boxs_crop.append(box_resz)
@@ -408,25 +391,13 @@ class ConversionDataset():
 
                 # add noise to center point
                 x_cent_crop = self.noise(
-                    val = (xmax_crop
-                           - xmin_crop)//2,
-                    size = (xmax_crop
-                           - xmin_crop),
-                    pct = 0.1
-                )
+                    val = (xmax_crop - xmin_crop)//2,
+                    size = (xmax_crop - xmin_crop), pct = 0.1)
                 y_cent_crop = self.noise(
-                    val = (ymax_crop
-                          - ymin_crop)//2,
-                    size = (ymax_crop
-                           - ymin_crop),
-                    pct = 0.1
-                )
-                centers_crop.append(
-                    (x_cent_crop,
-                     y_cent_crop)
-                )
+                    val = (ymax_crop - ymin_crop)//2,
+                    size = (ymax_crop - ymin_crop), pct = 0.1)
 
-            # reset cropsize
+                centers_crop.append((x_cent_crop,y_cent_crop))
 
         return imgs_crop, boxs_crop, centers_crop
 
@@ -450,17 +421,15 @@ class ConversionDataset():
             img = img,
             bboxs = np.array(bboxs),
             centers = cntrs,
-            crop_size = 100,
-            crop_noise = 0.1,
-            box_noise = 0.2,
+            crop_size = self.crop_size,
+            crop_noise = self.crop_noise,
+            box_noise = self.box_noise,
             img_size = self.img_size
         )
 
         # loop over crops and save
-        for new_img, box, cntr, cat in zip(crop_imgs,
-                                           crop_bboxs,
-                                           crop_cntrs,
-                                           cats):
+        for new_img, box, cntr, cat in zip(crop_imgs, crop_bboxs,
+                                           crop_cntrs, cats):
             # save img
             new_img_name = f'img_{self.img_idx}_{cat}_{self.anno_idx}.jpg'
             new_img_pth = DST/new_img_name
@@ -538,3 +507,4 @@ class ConversionDataset():
         for img_id in self.full_img_ids:
             self.convert(img_id)
         # write to json
+
