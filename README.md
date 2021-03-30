@@ -17,17 +17,10 @@ This file will become your README and also the index of your documentation.
 The `point_to_box.data` module can transform COCO object-detection style images and annotations into point-to-box style images and annotations using a `ConversionDataset`
 
 ```python
-dataset = data.ConversionDataset(data_path = SRC, 
-                                 anno_fname = ANNOS,
-                                 dst_path = DST,
-                                 img_size = 224)
+#hide_output
+dataset = data.ConversionDataset(data_path = SRC, anno_fname = ANNOS,
+                                 dst_path = DST, img_size = 224)
 ```
-
-    loading annotations into memory...
-    Done (t=0.58s)
-    creating index...
-    index created!
-
 
 A ConversionDataset can turn images with box annotations like this:
 
