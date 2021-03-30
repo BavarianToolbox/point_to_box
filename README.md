@@ -14,7 +14,7 @@ This file will become your README and also the index of your documentation.
 
 ### The data module:
 
-The data module can transform COCO object-detection style data and annotations into point-to-box style data and annotations using the `point_to_box.data` module.
+The `point_to_box.data` module can transform COCO object-detection style images and annotations into point-to-box style images and annotations using a `ConversionDataset`
 
 ```python
 dataset = data.ConversionDataset(data_path = SRC, 
@@ -29,34 +29,8 @@ dataset = data.ConversionDataset(data_path = SRC,
     index created!
 
 
-```python
-img, bboxs, cntrs, cats = dataset.load_img(331352)
-img_w_boxes=utils.draw_rect(np.array(img), np.reshape(np.array(bboxs), (-1, 4)))
-```
+A ConversionDataset can turn images with box annotations like this:
 
-```python
-plt.imshow(img_w_boxes)
-plt.show()
-```
+Into individual images with point-to-box style annotations like this:
 
-
-![png](docs/images/output_7_0.png)
-
-
-```python
-imgs_crop, boxs_crop, cntrs_crop = dataset.crop_objs(img, bboxs, cntrs, resize = True, img_size=224)
-```
-
-```python
-idx = 0
-crop_img_w_box = utils.draw_rect(imgs_crop[idx], boxs_crop[idx])
-plt.imshow(crop_img_w_box)
-plt.plot(cntrs_crop[idx][0],
-         cntrs_crop[idx][1],
-        'ro')
-plt.show()
-```
-
-
-![png](docs/images/output_9_0.png)
-
+The ConversionDataset class has a `convert` method to convert individual images as well as a `convert_all` method to process all the images in the annotation file.

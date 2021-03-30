@@ -347,10 +347,10 @@ class ConversionDataset():
 
             # compute new box coordinates
             # [xmin, ymin, xmax, ymax]
-            xmin_crop = (xmin - left) + 1
-            ymin_crop = (ymin - upper) + 1
-            xmax_crop = (xmax - left) + 1
-            ymax_crop = (ymax - upper) + 1
+            xmin_crop = (xmin - left)
+            ymin_crop = (ymin - upper)
+            xmax_crop = (xmax - left)
+            ymax_crop = (ymax - upper)
 
             bbox = [xmin_crop, ymin_crop, xmax_crop, ymax_crop]
 
