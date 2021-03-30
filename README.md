@@ -31,6 +31,14 @@ dataset = data.ConversionDataset(data_path = SRC,
 
 A ConversionDataset can turn images with box annotations like this:
 
+
+![png](docs/images/output_7_0.png)
+
+
 Into individual images with point-to-box style annotations like this:
+
+
+![png](docs/images/output_9_0.png)
+
 
 The ConversionDataset class has a `convert` method to convert individual images as well as a `convert_all` method to process all the images in the annotation file.
