@@ -44,25 +44,18 @@ Into individual images with point-to-box style annotations like this:
 
 The ConversionDataset class has a `convert` method to convert individual images one at a time as well as a `convert_all` method to process all (or a percentage) of the images.
 
+```python
+#hide_output
+# dataset.convert(184791)
+dataset.convert_all()
+```
+
 The `to_json()` method writes the new annotations to file and can split the data into training and validation partitions using the `pct` argument. If no percentage is specified the dataset remains unparitioned and is written to a single directory.
 
 ```python
+#hide_output
 dataset.to_json(pct = 0.2)
 ```
-
-      0%|          | 1/29068 [00:00<52:01,  9.31it/s]
-
-    Moving train images
-
-
-    100%|██████████| 29068/29068 [26:21<00:00, 18.38it/s]
-      0%|          | 6/7267 [00:00<02:20, 51.83it/s]
-
-    Moving val images
-
-
-    100%|██████████| 7267/7267 [01:08<00:00, 106.39it/s]
-
 
 #### Using data
 
@@ -81,7 +74,7 @@ ptbloader = torch.utils.data.DataLoader(dataset = ptbdata, batch_size = 8)
 Plotting a batch of images from our converted data let's us confirm that the cropping and box coordinate conversion works as we expect it to.
 
 
-![png](docs/images/output_16_0.png)
+![png](docs/images/output_17_0.png)
 
 
 ### Training models

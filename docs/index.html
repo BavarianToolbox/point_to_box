@@ -158,6 +158,24 @@ nb_path: "nbs/index.ipynb"
 </div>
 </div>
 </div>
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># dataset.convert(184791)</span>
+<span class="n">dataset</span><span class="o">.</span><span class="n">convert_all</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
 <div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>The <code>to_json()</code> method writes the new annotations to file and can split the data into training and validation partitions using the <code>pct</code> argument. If no percentage is specified the dataset remains unparitioned and is written to a single directory.</p>
@@ -176,51 +194,6 @@ nb_path: "nbs/index.ipynb"
 </pre></div>
 
     </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-<div class="output_area">
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>  0%|          | 1/29068 [00:00&lt;52:01,  9.31it/s]</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Moving train images
-</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 29068/29068 [26:21&lt;00:00, 18.38it/s]
-  0%|          | 6/7267 [00:00&lt;02:20, 51.83it/s]</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Moving val images
-</pre>
-</div>
-</div>
-
-<div class="output_area">
-
-<div class="output_subarea output_stream output_stderr output_text">
-<pre>100%|██████████| 7267/7267 [01:08&lt;00:00, 106.39it/s]
-</pre>
-</div>
-</div>
-
 </div>
 </div>
 
