@@ -56,7 +56,7 @@ def draw_rect(im, cords, box_format = None, color = None):
      - None     : [xmin, ymin, xmax, ymax]
 
 
-    color : List of one or more colors [[R, G, B]]
+    color : List of one or more colors [(R, G, B)]
 
     **Returns**
 
@@ -68,7 +68,7 @@ def draw_rect(im, cords, box_format = None, color = None):
         if len(color) == 1:
             color *= len(cords)
     else:
-        color = [[255,0,0]]*len(cords)
+        color = [(0,255,0)]*len(cords)
 
     im = im.copy()
 
@@ -185,12 +185,22 @@ def resize(size, img, bbox):
     """
 
     img_w, img_h = img.shape[1], img.shape[0]
+#     print(img.shape)
     w, h = size, size
     new_w = int(img_w * min(w/img_w, h/img_h))
     new_h = int(img_h * min(w/img_w, h/img_h))
+#     new_w = size
+#     new_h = size
     resized_image = cv2.resize(img, (new_w,new_h))
-
+#     print(f'Resized shape: {resized_image.shape}')
+#     print(f'size: {size}')
+#     print(f'new_w: {new_w}')
+#     print(f'new_h: {new_h}')
+#     print(f'Image shape: {resized_image.shape}')
     canvas = np.full((size, size, 3), 0)
+#     print(f'Canvas shape: {canvas.shape}')
+#     temp = canvas[(h-new_h)//2:(h-new_h)//2 + new_h,(w-new_w)//2:(w-new_w)//2 + new_w,  :]
+#     print(temp.shape)
     canvas[(h-new_h)//2:(h-new_h)//2 + new_h,(w-new_w)//2:(w-new_w)//2 + new_w,  :] = resized_image
 
     img = canvas

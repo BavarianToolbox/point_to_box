@@ -196,13 +196,20 @@ class ConversionDataset():
         img_path = self.coco.loadImgs(img_id)[0]['file_name']
         # open image
         img = Image.open(os.path.join(self.data, img_path))
+#         print(np.array(img).shape)
+#         print(img.mode)
+        if img.mode == 'L':
+            img = img.convert('RGB')
+
 
         # Bounding boxes
         # Coco format: [xmin, ymin, width, height]
         bboxs = []
         cntrs = []
         cats = []
-        licenses = []
+        # TODO:
+        # figure out how to transfer license data from original to crop
+        # licenses = []
         for i in range(num_objs):
             xmin = coco_annos[i]['bbox'][0]
             ymin = coco_annos[i]['bbox'][1]
@@ -272,7 +279,7 @@ class ConversionDataset():
 
         crop_noise : percent of noise to add to corp size
 
-        img_size : image resz
+        img_size : target size for new images
 
         box_noise : percent of noise to add to box off set
 
@@ -381,7 +388,7 @@ class ConversionDataset():
                 if ymi_resz < 0: ymi_resz = 0
                 if xma_resz > img_resz.shape[1]: xma_resz = img_resz.shape[1]
                 if yma_resz > img_resz.shape[0]: yma_resz = img_resz.shape[0]
-                box_resz = np.array([[xmi_resz, ymi_resz, xma_resz, yma_resz]])
+                box_resz = [xmi_resz, ymi_resz, xma_resz, yma_resz]
 #                 print(box_resz)
 
                 # compute box center
@@ -404,7 +411,7 @@ class ConversionDataset():
             # no resize
             else:
                 imgs_crop.append(np.array(img_crop))
-                boxs_crop.append(np.array([bbox]))
+                boxs_crop.append([bbox])
 
                 # add noise to center point
                 x_cent_crop = self.noise(
@@ -448,7 +455,7 @@ class ConversionDataset():
 
 
         # loop over crops and save
-        for new_img, npbox, cntr, cat in zip(crop_imgs, crop_bboxs,
+        for new_img, box, cntr, cat in zip(crop_imgs, crop_bboxs,
                                            crop_cntrs, cats):
             # save img
             new_img_name = f'img_{self.img_idx}_anno_{self.anno_idx}_{cat}_.jpg'
@@ -458,7 +465,7 @@ class ConversionDataset():
 
             # construct append annotation info to lists
 #             print(f'npbox: {npbox}')
-            box = npbox[0]
+#             box = npbox[0]
 #             print(f'box: {box}')
             w, h = box[2] - box[0], box[3] - box[1]
             area = w * h
@@ -524,12 +531,15 @@ class ConversionDataset():
                 'category_id': self.coco.getCatIds(catNms = cat)[0],
                 'iscrowd': 0})
 
+
         json_data = {
             'info': info,
             'licenses': licenses,
             'images': images,
             'annotations': annotations,
             'categories': categories}
+
+#         print(json_data)
 
         with open(self.dst/self.new_annos, 'w') as json_file:
             json.dump(json_data, json_file)
