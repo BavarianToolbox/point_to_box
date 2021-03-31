@@ -40,9 +40,10 @@ nb_path: "nbs/01_data.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="PTBDataset" class="doc_header"><code>class</code> <code>PTBDataset</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/data.py#L21" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>PTBDataset</code>(<strong><code>root</code></strong>, <strong><code>annos</code></strong>, <strong><code>box_format</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>norm_chnls</code></strong>=<em><code>None</code></em>) :: <code>Dataset</code></p>
+<h2 id="PTBDataset" class="doc_header"><code>class</code> <code>PTBDataset</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/data.py#L23" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>PTBDataset</code>(<strong><code>root</code></strong>, <strong><code>annos</code></strong>, <strong><code>box_format</code></strong>, <strong><code>tfms</code></strong>=<em><code>None</code></em>, <strong><code>norm_chnls</code></strong>=<em><code>None</code></em>) :: <code>Dataset</code></p>
 </blockquote>
 <p>Point-to-box dataset class compatible with pytorch dataloaders</p>
+<p><strong>Params</strong></p>
 
 </div>
 
@@ -72,9 +73,18 @@ nb_path: "nbs/01_data.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ConversionDataset" class="doc_header"><code>class</code> <code>ConversionDataset</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/data.py#L106" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConversionDataset</code>(<strong><code>data_path</code></strong>, <strong><code>anno_fname</code></strong>, <strong><code>dst_path</code></strong>, <strong><code>crop_size</code></strong>=<em><code>100</code></em>, <strong><code>crop_noise</code></strong>=<em><code>0.1</code></em>, <strong><code>resize</code></strong>=<em><code>True</code></em>, <strong><code>img_size</code></strong>=<em><code>512</code></em>, <strong><code>box_noise</code></strong>=<em><code>0.2</code></em>, <strong><code>new_anno_fname</code></strong>=<em><code>None</code></em>)</p>
+<h2 id="ConversionDataset" class="doc_header"><code>class</code> <code>ConversionDataset</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/data.py#L113" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConversionDataset</code>(<strong><code>data_path</code></strong>, <strong><code>anno_fname</code></strong>, <strong><code>dst_path</code></strong>, <strong><code>crop_size</code></strong>=<em><code>100</code></em>, <strong><code>crop_noise</code></strong>=<em><code>0.1</code></em>, <strong><code>resize</code></strong>=<em><code>True</code></em>, <strong><code>img_size</code></strong>=<em><code>512</code></em>, <strong><code>box_noise</code></strong>=<em><code>0.2</code></em>, <strong><code>new_anno_fname</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>Class to convert coco-style datasets and annotations into point-to-box style datasets and annotations</p>
+<p><strong>Params</strong></p>
+<p>data_path : path to data directory as Pathlib object</p>
+<p>anno_fname : name of coco-style JSON annotation file</p>
+<p>dst_path : destination path for new dataset and annotation file</p>
+<p>crop_size : size of the square crops taken from the original images</p>
+<p>crop_noise : percentage of possible crop size noise</p>
+<p>resize : bool indicating whether to resize cropped images</p>
+<p>img_size : size of new images is 'resize' is True</p>
+<p>box_noise : percentage of possible box noise</p>
 
 </div>
 

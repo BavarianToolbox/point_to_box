@@ -15,6 +15,9 @@ entries:
     - output: web,pdf
       title: data
       url: data.html
+    - output: web,pdf
+      title: model
+      url: model.html
     output: web
     title: point_to_box
   output: web

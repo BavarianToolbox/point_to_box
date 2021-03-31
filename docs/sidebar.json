@@ -2,6 +2,7 @@
   "point_to_box": {
     "Overview": "/",
     "utils": "utils.html",
-    "data": "data.html"
+    "data": "data.html",
+    "model": "model.html"
   }
 }

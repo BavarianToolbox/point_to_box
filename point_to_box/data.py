@@ -7,7 +7,9 @@ __all__ = ['PTBDataset', 'ConversionDataset']
 import point_to_box.utils as utils
 import torch
 import os
+import shutil
 import json
+import glob
 import numpy as np
 from tqdm import tqdm
 from cv2 import rectangle
@@ -19,7 +21,12 @@ import random
 
 # Cell
 class PTBDataset(Dataset):
-    """Point-to-box dataset class compatible with pytorch dataloaders"""
+    """Point-to-box dataset class compatible with pytorch dataloaders
+
+    **Params**
+
+
+    """
 
     def __init__(self, root, annos, box_format, tfms = None, norm_chnls=None, ):
         self.root = root
@@ -104,31 +111,30 @@ class PTBDataset(Dataset):
 
 # Cell
 class ConversionDataset():
-    """Class to convert coco-style datasets and annotations into point-to-box style datasets and annotations"""
+    """
+    Class to convert coco-style datasets and annotations into point-to-box style datasets and annotations
+
+    **Params**
+
+    data_path : path to data directory as Pathlib object
+
+    anno_fname : name of coco-style JSON annotation file
+
+    dst_path : destination path for new dataset and annotation file
+
+    crop_size : size of the square crops taken from the original images
+
+    crop_noise : percentage of possible crop size noise
+
+    resize : bool indicating whether to resize cropped images
+
+    img_size : size of new images is 'resize' is True
+
+    box_noise : percentage of possible box noise
+    """
     def __init__(self, data_path, anno_fname, dst_path,
                  crop_size = 100, crop_noise = 0.1, resize = True,
                  img_size = 512, box_noise = 0.2, new_anno_fname = None):
-        """
-
-        **Params**
-
-        data_path : path to data directory as Pathlib object
-
-        anno_fname : name of coco-style JSON annotation file
-
-        dst_path : destination path for new dataset and annotation file
-
-        crop_size : size of the square crops taken from the original images
-
-        crop_noise : percentage of possible crop size noise
-
-        resize : bool indicating whether to resize cropped images
-
-        img_size : size of new images is 'resize' is True
-
-        box_noise : percentage of possible box noise
-
-        """
         # inputs for dataset processing
         self.data = data_path
         self.annos = anno_fname
@@ -157,8 +163,6 @@ class ConversionDataset():
         self.new_cntrs = []
         self.new_anno_ids = []
         self.new_cats = []
-
-#     def __getitem__():
 
     def __len__(self):
         return len(self.full_img_ids)
@@ -196,14 +200,9 @@ class ConversionDataset():
         img_path = self.coco.loadImgs(img_id)[0]['file_name']
         # open image
         img = Image.open(os.path.join(self.data, img_path))
-#         print(np.array(img).shape)
-#         print(img.mode)
-        if img.mode == 'L':
-            img = img.convert('RGB')
+        if img.mode == 'L': img = img.convert('RGB')
 
-
-        # Bounding boxes
-        # Coco format: [xmin, ymin, width, height]
+        # Bounding box format: [xmin, ymin, width, height]
         bboxs = []
         cntrs = []
         cats = []
@@ -256,14 +255,8 @@ class ConversionDataset():
         return noisy_val
 
 
-    def crop_objs(self,
-        img, bboxs, cntrs,
-        inp_crop_size = 100,
-        crop_noise = 0.1,
-        resize = True,
-        img_size = 512,
-        box_noise = 0.2
-        ):
+    def crop_objs(self, img, bboxs, cntrs, inp_crop_size = 100,
+        crop_noise = 0.1, resize = True, img_size = 512, box_noise = 0.2):
         """
         Crop individual square images for each object (box) in img
 
@@ -471,8 +464,6 @@ class ConversionDataset():
             area = w * h
             coco_box = [box[0], box[1], w, h]
 
-#             print(f'COCO Box: {coco_box}')
-
             self.new_img_names.append(new_img_name)
             self.new_img_ids.append(self.img_idx)
             self.new_box_annos.append(coco_box)
@@ -485,11 +476,30 @@ class ConversionDataset():
             self.anno_idx += 1
 
 
-    def to_json(self, info = None, licenses = None, categories = None):
+    def convert_all(self, pct = 1.0):
+        """
+        Convert all (or a percentage) of photos and annotations in the dataset
+
+        **Params**
+
+        pct : percent of data to write to train partition
+        """
+        img_ids = self.full_img_ids
+        if pct < 1.0:
+            stop = int(len(img_ids)*pct)
+            img_ids = img_ids[:stop]
+
+        for img_id in tqdm(img_ids):
+            self.convert(img_id)
+
+
+    def to_json(self, pct = 0.0, info = None, licenses = None, categories = None):
         """
         Convert new annotations into coco-style json.
 
         **Params**
+
+        pct : percent of data to write to valid partition
 
         info : 'info' section for COCO-style JSON
 
@@ -539,16 +549,71 @@ class ConversionDataset():
             'annotations': annotations,
             'categories': categories}
 
-#         print(json_data)
+        if pct > 0.0:
+            self.split(json_data, pct)
 
-        with open(self.dst/self.new_annos, 'w') as json_file:
-            json.dump(json_data, json_file)
+        else:
+            with open(self.dst/self.new_annos, 'w') as json_file:
+                json.dump(json_data, json_file)
 
 
-    def convert_all(self):
+    def split(self, json_data, pct):
+        """Randomly splits and moves data into train/valid partitions
+
+        **Params**
+
+        json_data : coco-style json dict to split into two
+
+        pct : percent of data to assign to valid split
         """
-        Convert all photos and annotations in the dataset
-        """
-        for img_id in tqdm(self.full_img_ids):
-            self.convert(img_id)
 
+        idxs = [i for i in range(len(json_data['images']))]
+        random.shuffle(idxs)
+        splt = int(len(idxs)*(1-pct))
+
+        train_json ={
+            'info' : json_data['info'],
+            'licenses' : json_data['licenses'],
+            'categories' : json_data['categories'],
+            'images' : list(map(json_data['images'].__getitem__, idxs[:splt])),
+            'annotations' : list(map(json_data['annotations'].__getitem__, idxs[:splt])),
+        }
+
+        val_json = {
+            'info' : json_data['info'],
+            'licenses' : json_data['licenses'],
+            'categories' : json_data['categories'],
+            'images' : list(map(json_data['images'].__getitem__, idxs[splt:])),
+            'annotations' : list(map(json_data['images'].__getitem__, idxs[splt:])),
+        }
+
+        # write json files
+
+        train_dir = self.dst/'train'
+        val_dir = self.dst/'val'
+
+        train_dir.mkdir(parents = True, exist_ok = True)
+        val_dir.mkdir(parents = True, exist_ok = True)
+
+        train_json_fname = train_dir/('train_'+ self.new_annos)
+        val_json_fname = val_dir/('val_'+ self.new_annos)
+
+        for data, fname in zip([train_json, val_json],
+                               [train_json_fname, val_json_fname]):
+
+            with open(fname, 'w') as file:
+                json.dump(data, file)
+
+        # move images
+
+        print('Moving train images')
+        for idx in tqdm(idxs[:splt]):
+            fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
+            fname = os.path.basename(fpath)
+            shutil.move(fpath, self.dst/f'train/{fname}')
+
+        print('Moving val images')
+        for idx in tqdm(idxs[splt:]):
+            fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
+            fname = os.path.basename(fpath)
+            shutil.move(fpath, self.dst/f'val/{fname}')
