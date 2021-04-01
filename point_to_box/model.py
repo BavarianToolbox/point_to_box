@@ -100,7 +100,7 @@ class EfficientLoc():
 
                 # Iterate over data.
                 for i, (inputs, labels) in enumerate(dataloaders[phase]):
-#                     if i % 10 == 0: print(f'Batch: {i}')
+
                     inputs = inputs.to(self.device)
                     labels = labels.to(self.device)
 
@@ -121,12 +121,8 @@ class EfficientLoc():
                     inter_loss += loss.item()
 
                     if (i+1) % print_every == 0:
-#                         print((i+1))
-#                         print((i+1)//print_every)
 
                         inter_loss = inter_loss / ((i+1-batches_past) * inputs.shape[0])
-
-#                         inter_loss = inter_loss / (((i+1) // print_every) * inputs.shape[0])
                         print(f'Intermediate loss: {inter_loss:.6f}')
                         inter_loss = 0.
                         batches_past = i+1

@@ -148,7 +148,6 @@ def convert_cords(cords, img_dims, cord_format):
     box_cntr = (xmin + (w/2), ymin + (h/2))
     imgw, imgh = img_dims
     img_cntr = (imgw/2, imgh/2)
-#     img_dims = (imgw, imgh)
 
     ofst = []
     for bx_cord, img_cord, img_dim in zip(box_cntr, img_cntr, img_dims):
@@ -187,22 +186,14 @@ def resize(size, img, bbox):
     """
 
     img_w, img_h = img.shape[1], img.shape[0]
-#     print(img.shape)
+
     w, h = size, size
     new_w = int(img_w * min(w/img_w, h/img_h))
     new_h = int(img_h * min(w/img_w, h/img_h))
-#     new_w = size
-#     new_h = size
+
     resized_image = cv2.resize(img, (new_w,new_h))
-#     print(f'Resized shape: {resized_image.shape}')
-#     print(f'size: {size}')
-#     print(f'new_w: {new_w}')
-#     print(f'new_h: {new_h}')
-#     print(f'Image shape: {resized_image.shape}')
+
     canvas = np.full((size, size, 3), 0)
-#     print(f'Canvas shape: {canvas.shape}')
-#     temp = canvas[(h-new_h)//2:(h-new_h)//2 + new_h,(w-new_w)//2:(w-new_w)//2 + new_w,  :]
-#     print(temp.shape)
     canvas[(h-new_h)//2:(h-new_h)//2 + new_h,(w-new_w)//2:(w-new_w)//2 + new_w,  :] = resized_image
 
     img = canvas
