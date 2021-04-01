@@ -53,6 +53,10 @@ class EfficientLoc():
         for param in model.parameters():
             param.requires_grad = True
 
+        if torch.cuda.device_count() > 1:
+            print(f'Using {torch.cuda.device_count()} GPUs')
+            model = torch.nn.DataParallel(model)
+
         model.to(self.device)
 
         return model
