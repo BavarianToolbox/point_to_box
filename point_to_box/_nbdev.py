@@ -9,7 +9,7 @@ index = {"get_norm_stats": "00_utils.ipynb",
          "PTBDataset": "01_data.ipynb",
          "ConversionDataset": "01_data.ipynb",
          "EfficientLoc": "02_model.ipynb",
-         "ciou": "02_model.ipynb"}
+         "CIoU": "02_model.ipynb"}
 
 modules = ["utils.py",
            "data.py",

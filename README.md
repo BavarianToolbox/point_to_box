@@ -47,26 +47,25 @@ The ConversionDataset class has a `convert` method to convert individual images 
 ```python
 #hide_output
 # dataset.convert(184791)
-dataset.convert_all()
+dataset.convert_all(cord_format = 'corner_ofst_frac')
 ```
 
 The `to_json()` method writes the new annotations to file and can split the data into training and validation partitions using the `pct` argument. If no percentage is specified the dataset remains unparitioned and is written to a single directory.
 
 ```python
 #hide_output
-dataset.to_json(pct = 0.2)
+dataset.to_json(pct = 0.18)
 ```
 
 #### Using data
 
-The `point_to_box.data` module contains a `PTBDataset` class designed in the PyTorch style so it can be used with the PyTorch `DataLoader` class.
+The `point_to_box.data` module contains a `PTBDataset` class designed in the PyTorch style so it can be used with a PyTorch `DataLoader`.
 
 ```python
 #hide_output
 ptbdata = data.PTBDataset(
-    root = DST,
-    annos = DST/('individual_'+ANNOS),
-    box_format = 'coco')
+    root = DST/'train',
+    annos = DST/('train/train_individual_'+ANNOS))
 
 ptbloader = torch.utils.data.DataLoader(dataset = ptbdata, batch_size = 8)
 ```
@@ -78,3 +77,10 @@ Plotting a batch of images from our converted data let's us confirm that the cro
 
 
 ### Training models
+
+```python
+effloc = model.EfficientLoc()
+```
+
+    Loaded pretrained weights for efficientnet-b0
+

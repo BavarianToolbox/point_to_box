@@ -25,10 +25,19 @@ class PTBDataset(Dataset):
 
     **Params**
 
+    root : Path to data dir
+
+    annos : annotation json file name
+
+    box_format : optional, format for box cord conversion
+
+    tfms : optional, image transforms
+
+    norm_chnls : optional number of img channels to normalize, required if using tfms
 
     """
 
-    def __init__(self, root, annos, box_format, tfms = None, norm_chnls=None, ):
+    def __init__(self, root, annos, box_format = None, tfms = None, norm_chnls=None, ):
         self.root = root
         self.tfms = tfms
         if tfms:
@@ -36,9 +45,9 @@ class PTBDataset(Dataset):
         self.norm_chnls = norm_chnls
         self.coco = COCO(annos)
         self.ids = list(sorted(self.coco.imgs.keys()))
-        assert box_format in ['coco', 'cntr_ofst',
-                              'cntr_ofst_frac',
-                              'corner_ofst_frac'], 'Improper box format'
+        if box_format:
+            assert box_format in ['cntr_ofst', 'cntr_ofst_frac',
+                                  'corner_ofst_frac'], 'Improper box format'
         self.box_format = box_format
 
     def __getitem__(self, idx):
@@ -55,31 +64,34 @@ class PTBDataset(Dataset):
 
         # 3-channel image transforms
         if self.tfms and self.norm_chnls == 3:
-            img = self.tfms(
-                torch.as_tensor(
-                    img, dtype = torch.float32
-                ).permute(2,0,1))
+            img = self.tfms(torch.as_tensor(
+                    img, dtype = torch.float32).permute(2,0,1))
             img = img.permute(1, 2, 0).numpy()
 
         # new 4-channel array
         img_4ch = np.zeros([imgh, imgw, 4], dtype = np.float32)
         img_4ch[:,:,:3] = img
 
-        # box coords form annotation
+        # box coords from annotation json
         xmin, ymin, boxw, boxh = coco_annotation[0]['bbox']
 
-        # Bounding boxes
-        if self.box_format == 'coco':
-            # Coco format: [xmin, ymin, width, height]
-            target = [xmin, ymin, boxw, boxh]
-            target = torch.as_tensor(target, dtype = torch.float32)
+        if self.box_format:
 
+#             # Bounding boxes
+#             if self.box_format == 'coco':
+#                 # Coco format: [xmin, ymin, width, height]
+#                 target = [xmin, ymin, boxw, boxh]
+
+#             else:
+                # convert box coords
+            target = utils.convert_cords([xmin, ymin, boxw, boxh],
+                                         [imgw, imgh], self.box_format)
+
+        # no box cord conversion
         else:
-            # convert box coords
-            target = self.convert_cords(xmin, ymin, boxw,
-                                        boxh, imgw, imgh,
-                                        self.box_format)
-            target = torch.as_tensor(target, dtype = torch.float32)
+             target = [xmin, ymin, boxw, boxh]
+
+        target = torch.as_tensor(target, dtype = torch.float32)
 
         # object prompt centers for 4th-channel image mask
         xcntr, ycntr = coco_annotation[0]['center']
@@ -278,11 +290,11 @@ class ConversionDataset():
 
         **Return**
 
-        imgs_crop :
+        imgs_crop : list of cropped np.array images
 
-        boxs_crop :
+        boxs_crop : list of cropped bbox corrdinates
 
-        centers_crop :
+        centers_crop : list of cropped center box coordinates
 
         """
         # pillow coorodinates (x,y):
@@ -422,7 +434,7 @@ class ConversionDataset():
 
 
 
-    def convert(self, img_id):
+    def convert(self, img_id, cord_format = None):
         """
         Convert a single image in the dataset into multipls
         point-to-box style images
@@ -430,6 +442,12 @@ class ConversionDataset():
         **Params**
 
         img_id : id of the image in the coco-style annotation file
+
+        coord_format : optional format for bbox conversion, if None then no conversion is applied
+
+        - cnt_ofst         : [xofst, yofst, w, h]
+        - cntr_ofst_frac   : [xofst, yofst, w, h] as fraction of image width/height
+        - corner_ofst_frac : [xmin, ymin, w, h] as fraction of image width/height
 
         """
         # load full img and annos
@@ -462,7 +480,14 @@ class ConversionDataset():
 #             print(f'box: {box}')
             w, h = box[2] - box[0], box[3] - box[1]
             area = w * h
-            coco_box = [box[0], box[1], w, h]
+            if cord_format:
+                coco_box = utils.convert_cords(
+                    cords = [box[0], box[1], w, h],
+                    img_dims = [new_img.shape[1], new_img.shape[0]],
+                    cord_format = cord_format
+                )
+            else:
+                coco_box = [box[0], box[1], w, h]
 
             self.new_img_names.append(new_img_name)
             self.new_img_ids.append(self.img_idx)
@@ -476,7 +501,7 @@ class ConversionDataset():
             self.anno_idx += 1
 
 
-    def convert_all(self, pct = 1.0):
+    def convert_all(self, pct = 1.0, cord_format = None):
         """
         Convert all (or a percentage) of photos and annotations in the dataset
 
@@ -490,7 +515,7 @@ class ConversionDataset():
             img_ids = img_ids[:stop]
 
         for img_id in tqdm(img_ids):
-            self.convert(img_id)
+            self.convert(img_id, cord_format)
 
 
     def to_json(self, pct = 0.0, info = None, licenses = None, categories = None):
@@ -584,7 +609,7 @@ class ConversionDataset():
             'licenses' : json_data['licenses'],
             'categories' : json_data['categories'],
             'images' : list(map(json_data['images'].__getitem__, idxs[splt:])),
-            'annotations' : list(map(json_data['images'].__getitem__, idxs[splt:])),
+            'annotations' : list(map(json_data['annotations'].__getitem__, idxs[splt:])),
         }
 
         # write json files

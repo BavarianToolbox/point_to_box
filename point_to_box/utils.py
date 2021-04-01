@@ -131,7 +131,7 @@ def convert_cords(cords, img_dims, cord_format):
 
     cords : list of bbox coordinates [xmin, ymin, w, h]
 
-    img_dims : Image dimensions as list or tuple
+    img_dims : Image dimensions (w, h) as list or tuple
 
     cord_format : Coordinate conversion format
 
@@ -144,9 +144,11 @@ def convert_cords(cords, img_dims, cord_format):
     List of converted box coordinates
 
     """
+    xmin, ymin, w, h = cords
     box_cntr = (xmin + (w/2), ymin + (h/2))
+    imgw, imgh = img_dims
     img_cntr = (imgw/2, imgh/2)
-    img_dims = (imgw, imgh)
+#     img_dims = (imgw, imgh)
 
     ofst = []
     for bx_cord, img_cord, img_dim in zip(box_cntr, img_cntr, img_dims):
