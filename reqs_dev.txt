@@ -1,0 +1,9 @@
+torch
+torchvision
+efficientnet_pytorch
+opencv-python
+pycocotools
+Pillow
+jupyter
+ipykernel
+tqdm
