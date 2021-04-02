@@ -79,7 +79,7 @@ Plotting a batch of images from our converted data let's us confirm that the cro
 ### Training models
 
 ```python
-effloc = model.EfficientLoc()
+effloc = model.EfficientLoc(version='efficientnet-b0')
 ```
 
     Loaded pretrained weights for efficientnet-b0

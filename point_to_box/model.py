@@ -19,7 +19,7 @@ from torchvision import transforms
 # Cell
 class EfficientLoc():
 
-    def __init__(self, version = 'efficientnet-b0', in_channels = 4, out_features = 4):
+    def __init__(self, version = 'efficientnet-b0', in_channels = 4, out_features = 4, export = False):
         """
         EfficientLoc model class for loading, training, and exporting models
         """
@@ -29,6 +29,7 @@ class EfficientLoc():
         # check version is compliant
         self.in_channels = in_channels
         self.out_features = out_features
+        self.export = export
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.model = self.get_model(version = self.version,
             in_channels = self.in_channels, out_features  = self.out_features)
@@ -42,6 +43,10 @@ class EfficientLoc():
 
         # adjust in channels in conv stem
         model._change_in_channels(4)
+
+        if self.export:
+            model.set_swish(memory_efficient=False)
+
         model = torch.nn.Sequential(
             model,
             torch.nn.Dropout(0.2),
