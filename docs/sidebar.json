@@ -3,6 +3,7 @@
     "Overview": "/",
     "utils": "utils.html",
     "data": "data.html",
-    "model": "model.html"
+    "model": "model.html",
+    "fastai": "fastai.html"
   }
 }

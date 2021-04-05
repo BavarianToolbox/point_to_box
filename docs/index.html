@@ -273,7 +273,7 @@ nb_path: "nbs/index.ipynb"
 
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">effloc</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">EfficientLoc</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;efficientnet-b0&#39;</span><span class="p">)</span>
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">effloc</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">EfficientLoc</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="s1">&#39;efficientnet-b4&#39;</span><span class="p">)</span>
 </pre></div>
 
     </div>
@@ -285,12 +285,102 @@ nb_path: "nbs/index.ipynb"
 
 <div class="output_area">
 
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Loaded pretrained weights for efficientnet-b0
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>Downloading: &#34;https://github.com/lukemelas/EfficientNet-PyTorch/releases/download/1.0/efficientnet-b4-6ed6700e.pth&#34; to /Users/constantinbaumgartner/.cache/torch/hub/checkpoints/efficientnet-b4-6ed6700e.pth
 </pre>
 </div>
 </div>
 
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Loaded pretrained weights for efficientnet-b4
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Training complete in 49m 22s</span>
+<span class="c1"># Best val Loss: 0.0359</span>
+<span class="c1"># EfficientLoc-b1-coco2017val_40e_imgnetnorm4ch_100L.pth</span>
+<span class="c1"># effloc.save(DST/&#39;EfficientLoc-b1-coco2017val_40e_imgnetnorm4ch_100L.pth&#39;)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Training complete in 51m 0s</span>
+<span class="c1"># Best val Loss: 0.0357</span>
+<span class="c1"># EfficientLoc-b2-coco2017val_40e_imgnetnorm4ch_100L.pth</span>
+<span class="c1"># effloc.save(DST/&#39;EfficientLoc-b2-coco2017val_40e_imgnetnorm4ch_100L.pth&#39;)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Training complete in 61m 44s</span>
+<span class="c1"># Best val Loss: 0.0353</span>
+
+<span class="c1"># EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_100L.pth</span>
+<span class="c1"># effloc.save(DST/&#39;EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_100L.pth&#39;)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Training complete in 61m 47s</span>
+<span class="c1"># Best val Loss: 0.0347</span>
+
+<span class="c1"># EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_4L.pth</span>
+<span class="c1"># effloc.save(DST/&#39;EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_4L.pth&#39;)</span>
+</pre></div>
+
+    </div>
 </div>
 </div>
 

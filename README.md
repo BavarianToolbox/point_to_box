@@ -79,8 +79,45 @@ Plotting a batch of images from our converted data let's us confirm that the cro
 ### Training models
 
 ```python
-effloc = model.EfficientLoc(version='efficientnet-b0')
+effloc = model.EfficientLoc(version='efficientnet-b4')
 ```
 
-    Loaded pretrained weights for efficientnet-b0
+    Downloading: "https://github.com/lukemelas/EfficientNet-PyTorch/releases/download/1.0/efficientnet-b4-6ed6700e.pth" to /Users/constantinbaumgartner/.cache/torch/hub/checkpoints/efficientnet-b4-6ed6700e.pth
 
+
+    Loaded pretrained weights for efficientnet-b4
+
+
+```python
+# b1 liner 100
+# Training complete in 49m 22s
+# Best val Loss: 0.0359
+# EfficientLoc-b1-coco2017val_40e_imgnetnorm4ch_100L.pth
+# effloc.save(DST/'EfficientLoc-b1-coco2017val_40e_imgnetnorm4ch_100L.pth')
+```
+
+```python
+# b2 liner 100
+# Training complete in 51m 0s
+# Best val Loss: 0.0357
+# EfficientLoc-b2-coco2017val_40e_imgnetnorm4ch_100L.pth
+# effloc.save(DST/'EfficientLoc-b2-coco2017val_40e_imgnetnorm4ch_100L.pth')
+```
+
+```python
+# b3 liner 100
+# Training complete in 61m 44s
+# Best val Loss: 0.0353
+
+# EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_100L.pth
+# effloc.save(DST/'EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_100L.pth')
+```
+
+```python
+# b3 linear out_features 
+# Training complete in 61m 47s
+# Best val Loss: 0.0347
+
+# EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_4L.pth
+# effloc.save(DST/'EfficientLoc-b3-coco2017val_40e_imgnetnorm4ch_4L.pth')
+```

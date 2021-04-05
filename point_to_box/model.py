@@ -25,6 +25,9 @@ class EfficientLoc():
         """
 
         self.version = version
+
+
+#         self.inter_channels = versoin_dict([version])
         # TODO
         # check version is compliant
         self.in_channels = in_channels
@@ -39,20 +42,36 @@ class EfficientLoc():
         Adjusts efficient net model architecture for point-to-box data
         """
 
+        version_chnls = {
+            'efficientnet-b0': 1280,
+            'efficientnet-b1': 1280,
+            'efficientnet-b2': 1408,
+            'efficientnet-b3': 1536,
+            'efficientnet-b4': 1792
+#             'efficientnet-b5': 456
+#             'efficientnet-b6': 528
+#             'efficientnet-b7': 600
+#             'efficientnet-b8': 672
+#             'efficientnet-l2': 800
+
+        }
+
+        inter_channel = version_chnls[version]
+
         model = EfficientNet.from_pretrained(version, include_top = False)
 
         # adjust in channels in conv stem
-        model._change_in_channels(4)
+        model._change_in_channels(in_channels)
 
-        if self.export:
-            model.set_swish(memory_efficient=False)
+#         if self.export:
+        model.set_swish(memory_efficient= (not self.export))
 
         model = torch.nn.Sequential(
             model,
             torch.nn.Dropout(0.2),
             torch.nn.Flatten(),
-            torch.nn.Linear(1280, 100),
-            torch.nn.Linear(100, out_features),
+            torch.nn.Linear(inter_channel, out_features),
+#             torch.nn.Linear(100, out_features),
             torch.nn.Sigmoid()
         )
         for param in model.parameters():
