@@ -8,6 +8,7 @@ index = {"get_norm_stats": "00_utils.ipynb",
          "resize": "00_utils.ipynb",
          "PTBDataset": "01_data.ipynb",
          "PTBTransform": "01_data.ipynb",
+         "PTBImage": "01_data.ipynb",
          "ConversionDataset": "01_data.ipynb",
          "EfficientLoc": "02_model.ipynb",
          "CIoU": "02_model.ipynb"}
@@ -15,7 +16,8 @@ index = {"get_norm_stats": "00_utils.ipynb",
 modules = ["utils.py",
            "data.py",
            "model.py",
-           "fastai.py"]
+           "fastai.py",
+           "None.py"]
 
 doc_url = "https://BavarianToolbox.github.io/point_to_box/"
 

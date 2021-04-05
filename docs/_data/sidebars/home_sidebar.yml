@@ -21,6 +21,9 @@ entries:
     - output: web,pdf
       title: fastai
       url: fastai.html
+    - output: web,pdf
+      title: Title
+      url: sandbox.html
     output: web
     title: point_to_box
   output: web
