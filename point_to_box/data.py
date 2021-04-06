@@ -761,15 +761,20 @@ class ConversionDataset():
             with open(fname, 'w') as file:
                 json.dump(data, file)
 
+        # construct id : fname dict
+        _, _, filenames = next(os.walk(self.dst))
+        img_idx_list = [int(f.split('_')[1]) for f in filenames if f.endswith('.jpg')]
+        idx_name_map = {idx:name for idx,name in zip(img_idx_list, filenames)}
+
         # move images
         for idx in tqdm(idxs[:splt], desc = 'Moving train images'):
 #             tqdm.write('Moving train images')
-            fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
-            fname = os.path.basename(fpath)
-            shutil.move(fpath, self.dst/f'train/{fname}')
+#             fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
+#             fname = os.path.basename(fpath)
+            shutil.move(self.dst/idx_name_map[idx], self.dst/f'train/{idx_name_map[idx]}')
 
         for idx in tqdm(idxs[splt:], desc = 'Moving val images'):
 #             tqdm.write('Moving val images')
-            fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
-            fname = os.path.basename(fpath)
-            shutil.move(fpath, self.dst/f'val/{fname}')
+#             fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
+#             fname = os.path.basename(fpath)
+            shutil.move(self.dst/idx_name_map[idx], self.dst/f'val/{idx_name_map[idx]}')

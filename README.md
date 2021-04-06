@@ -47,7 +47,7 @@ The ConversionDataset class has a `convert` method to convert individual images 
 ```python
 #hide_output
 # dataset.convert(184791)
-dataset.convert_all(cord_format = 'corner_ofst_frac', pct = 0.01)
+dataset.convert_all(cord_format = 'corner_ofst_frac')
 ```
 
 The `to_json()` method writes the new annotations to file and can split the data into training and validation partitions using the `pct` argument. If no percentage is specified the dataset remains unparitioned and is written to a single directory.
