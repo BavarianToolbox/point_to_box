@@ -27,7 +27,7 @@ The `point_to_box.data` module can transform COCO object-detection style images 
 ```python
 #hide_output
 dataset = data.ConversionDataset(data_path = SRC, anno_fname = ANNOS,
-                                 dst_path = DST, img_size = 224)
+                                 dst_path = DST, img_size = 224, n = 3)
 ```
 
 A ConversionDataset can turn images with box annotations like this:
@@ -47,14 +47,14 @@ The ConversionDataset class has a `convert` method to convert individual images 
 ```python
 #hide_output
 # dataset.convert(184791)
-dataset.convert_all(cord_format = 'corner_ofst_frac')
+dataset.convert_all(cord_format = 'corner_ofst_frac', pct = 0.01)
 ```
 
 The `to_json()` method writes the new annotations to file and can split the data into training and validation partitions using the `pct` argument. If no percentage is specified the dataset remains unparitioned and is written to a single directory.
 
 ```python
 #hide_output
-dataset.to_json(pct = 0.18)
+dataset.to_json(pct = 0.15)
 ```
 
 #### Using data
@@ -67,13 +67,18 @@ ptbdata = data.PTBDataset(
     root = DST/'train',
     annos = DST/('train/train_individual_'+ANNOS))
 
-ptbloader = torch.utils.data.DataLoader(dataset = ptbdata, batch_size = 8)
+ptbloader = torch.utils.data.DataLoader(dataset = ptbdata, batch_size = 8, shuffle = True)
+```
+
+```python
+# temp_json = json.load(open(DST/('temp/train/train_individual_'+ANNOS)))
+# temp_json
 ```
 
 Plotting a batch of images from our converted data let's us confirm that the cropping and box coordinate conversion works as we expect it to.
 
 
-![png](docs/images/output_17_0.png)
+![png](docs/images/output_18_0.png)
 
 
 ### Training models

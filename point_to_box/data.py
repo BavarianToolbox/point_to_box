@@ -92,7 +92,7 @@ class PTBDataset(Dataset):
         target = torch.as_tensor(target, dtype = torch.float32)
 
         # object prompt centers for 4th-channel image mask
-        xcntr, ycntr = coco_annotation[0]['center']
+        xcntr, ycntr = coco_annotation[0]['prompt']
 
         # create center mask and change center value to 1
         # np indexing [row, col] => [cntr_y, cntr_x]
@@ -111,7 +111,6 @@ class PTBDataset(Dataset):
         # 4-channel image transforms
         if self.tfms and self.norm_chnls == 4:
             img_4ch = self.tfms(img_4ch)
-#             img = img.permute(1, 2, 0).numpy()
 
         return img_4ch, target
 
@@ -279,10 +278,12 @@ class ConversionDataset():
     img_size : size of new images is 'resize' is True
 
     box_noise : percentage of possible box noise
+
+    n : number of samples to create form each object
     """
     def __init__(self, data_path, anno_fname, dst_path,
                  crop_size = 100, crop_noise = 0.1, resize = True,
-                 img_size = 512, box_noise = 0.2, new_anno_fname = None):
+                 img_size = 512, box_noise = 0.2, n = 1, new_anno_fname = None):
         # inputs for dataset processing
         self.data = data_path
         self.annos = anno_fname
@@ -294,6 +295,7 @@ class ConversionDataset():
         self.resize = resize
         self.img_size = img_size
         self.box_noise = box_noise
+        self.n = n
         if new_anno_fname is None:
             self.new_annos = 'individual_'+ self.annos
         else:
@@ -308,7 +310,7 @@ class ConversionDataset():
         self.new_img_ids = []
         self.new_box_annos = []
         self.new_areas = []
-        self.new_cntrs = []
+        self.new_prompts = []
         self.new_anno_ids = []
         self.new_cats = []
 
@@ -335,7 +337,7 @@ class ConversionDataset():
 
         bboxs : list of box coordinates [[xmin, ymin, ]]
 
-        cntrs : list of box (object) centers
+        cntrs : list of box (object) prompts
         """
 
         # list of annotation ids
@@ -352,7 +354,7 @@ class ConversionDataset():
 
         # Bounding box format: [xmin, ymin, width, height]
         bboxs = []
-        cntrs = []
+#         cntrs = []
         cats = []
         # TODO:
         # figure out how to transfer license data from original to crop
@@ -370,13 +372,17 @@ class ConversionDataset():
             else:
                 xcent = xmin + (coco_annos[i]['bbox'][2]/2)
                 ycent = ymin + (coco_annos[i]['bbox'][3]/2)
-            cntrs.append([xcent, ycent])
+#             cntrs.append([xcent, ycent])
 
             cat = self.coco.loadCats(coco_annos[i]['category_id'])
 
             cats.append(cat[0]['name'])
 
-        return img, bboxs, cntrs, cats
+        prompts = utils.get_prompt_points(coco_annos, self.n)
+
+        assert len(prompts) == len(bboxs), 'Prompt and box length are not the same'
+
+        return img, bboxs, prompts, cats #cntrs,
 
 
     def noise(self, val, size, pct = 0.2):
@@ -403,7 +409,7 @@ class ConversionDataset():
         return noisy_val
 
 
-    def crop_objs(self, img, bboxs, cntrs, inp_crop_size = 100,
+    def crop_objs(self, img, bboxs, prompts, cats, inp_crop_size = 100,
         crop_noise = 0.1, resize = True, img_size = 512, box_noise = 0.2):
         """
         Crop individual square images for each object (box) in img
@@ -414,7 +420,7 @@ class ConversionDataset():
 
         bboxs : box coordinates [[xmin,ymin,xmax,ymax]]
 
-        cntrs : center box (object) coordinates (x,y)
+        prompts : box (object) prompt coordinates [[(x,y)]]
 
         crop_size : square corp size
 
@@ -430,7 +436,7 @@ class ConversionDataset():
 
         boxs_crop : list of cropped bbox corrdinates
 
-        centers_crop : list of cropped center box coordinates
+        prompts_crop : list of cropped object prompt coordinates
 
         """
         # pillow coorodinates (x,y):
@@ -441,132 +447,120 @@ class ConversionDataset():
         assert (inp_crop_size < w and inp_crop_size < h), \
             'crop size is larger than image'
 
-        # add noise to corp size
-        crop_size = self.noise(val = inp_crop_size,
-            size = inp_crop_size, pct = inp_crop_size)
+        imgs_crop, boxs_crop, prompts_crop, cats_crop = [], [], [], []
 
-        imgs_crop, boxs_crop, centers_crop = [], [], []
-
-        for box, cntr in zip(bboxs, cntrs):
+        # loop over boxes and prompt sets
+        for box, prompt, cat in zip(bboxs, prompts, cats):
 
             xmin, ymin, xmax, ymax = box
-            crop_size = inp_crop_size
-
-            # adjust crop size based on size of object box
             boxw, boxh = xmax - xmin, ymax - ymin
-#             print(f'Box width: {boxw}  Box height: {boxh}')
+            box_cntr = (xmin + boxw/2, ymin + boxh/2)
 
-            # object taking up more than 90% of crop in either dimension
-            if ((0.9 * boxw) > crop_size) or ((0.9 * boxh) > crop_size):
-                # make crop-size larger
-                crop_size = max(boxw, boxh)/(random.uniform(0.4, 0.8))
-            # clip to shortest img dimension
-            if crop_size > min(w, h): crop_size = min(w, h)
+            # loop over points in prompt (could be more than one per object)
+            for point in prompt:
 
-            # copy image for crop
-            cimg = img.copy()
+                # add noise to corp size for each prompt point
+                crop_size = self.noise(val = inp_crop_size,
+                                       size = inp_crop_size, pct = crop_noise)
 
-            # starting corp cords
-            left = cntr[0] - crop_size / 2
-            upper = cntr[1] - crop_size / 2
+                # adjust crop size if necessary
+                # crop too small, box taking up more than 90% of crop in either dimension
+                too_small = (boxw >= (crop_size * 0.9)) or (boxh >= (crop_size * 0.9))
+#                 while too_big is True:
+                if too_small:
+#                     print(too_small)
+#                     print(f'Box w: {boxw}  Box h: {boxh}')
+#                     print(f'Original crop size: {crop_size}')
+                    crop_size = max(boxw, boxh)*(random.uniform(1.2, 1.4))
+#                     print(f'Updated crop size : {crop_size}')
+#                     too_big = (boxw > crop_size * 0.9) or (boxh > crop_size * 0.9)
+                # clip crop size to shortest img dimension
+                if crop_size > min(w, h): crop_size = min(w, h)
 
-            # add noise so box isn't always
-            # exactly in the center of crop
-            left = self.noise(val = left,
-                size = crop_size,pct = box_noise)
 
-            upper = self.noise(val = upper,
-               size = crop_size, pct = box_noise)
+#                 if (boxw > crop_size * 0.9) or (boxh > crop_size * 0.9):
+#                     # make crop-size larger
+#                     crop_size = max(boxw, boxh)/(random.uniform(0.4, 0.8))
 
-            # right = left + crop_size
-            right = left + crop_size
-            # lower = upper + crop_size
-            lower = upper + crop_size
+                orig_size = crop_size
+#                 print(crop_size)
+                # copy image for crop
+                cimg = img.copy()
 
-#             print('Crop coords')
-#             print(f'Left: {left} Upper: {upper} Right: {right} Lower: {lower}')
+                # starting corp cords
+                left = box_cntr[0] - crop_size / 2
+                upper = box_cntr[1] - crop_size / 2
 
-            # check and correct for out of bounds crop
-            if left < 0:
-                left = 0
-                right = left + crop_size
-            if upper < 0:
-                upper = 0
-                lower = upper + crop_size
-            if right > w:
-                right = w
-                left = w - crop_size
-            if lower > h:
-                lower = h
-                upper = h - crop_size
+                # add noise so box isn't always exactly in the center of crop
+                left = self.noise(val = left, size = crop_size, pct = box_noise)
+                upper = self.noise(val = upper, size = crop_size, pct = box_noise)
+                right, lower = left + crop_size, upper + crop_size
 
-            # compute new box coordinates
-            # [xmin, ymin, xmax, ymax]
-            xmin_crop = (xmin - left)
-            ymin_crop = (ymin - upper)
-            xmax_crop = (xmax - left)
-            ymax_crop = (ymax - upper)
+                # check and correct for out of bounds crop
+                if left < 0:
+                    left = 0
+                    right = left + crop_size
+                if upper < 0:
+                    upper = 0
+                    lower = upper + crop_size
+                if right > w:
+                    right = w
+                    left = w - crop_size
+                if lower > h:
+                    lower = h
+                    upper = h - crop_size
 
-            bbox = [xmin_crop, ymin_crop, xmax_crop, ymax_crop]
+                # compute new box coordinates: [xmin, ymin, xmax, ymax]
+                xmin_crop = (xmin - left)
+                ymin_crop = (ymin - upper)
+                xmax_crop = (xmax - left)
+                ymax_crop = (ymax - upper)
+                bbox = [xmin_crop, ymin_crop, xmax_crop, ymax_crop]
 
-#             print('Crop coords after adjustment')
-#             print(f'Left: {left} Upper: {upper} Right: {right} Lower: {lower}')
+                # compute relative prompt cords based on image crop
+                x_prompt_rel = point[0] - left
+                y_prompt_rel = point[1] - upper
 
-            # crop expects 4-tupple: (left, upper, right, lower)
-            img_crop = img.crop((left, upper, right, lower))
+                # crop expects 4-tupple: (left, upper, right, lower)
+                img_crop = img.crop((left, upper, right, lower))
 
-            if resize:
-                img_resz, box_resz = utils.resize(img_size,
-                    np.array(img_crop), np.array([bbox]))
+                if resize:
+                    img_resz, box_resz = utils.resize(img_size,
+                        np.array(img_crop), np.array([bbox]))
 
-#                 print(box_resz)
-#                 print(box_resz[0])
+                    # reszd box cords
+                    xmi_resz, ymi_resz, xma_resz, yma_resz = box_resz[0]
+                    # clip box cords to image dims
+                    if xmi_resz < 0: xmi_resz = 0
+                    if ymi_resz < 0: ymi_resz = 0
+                    if xma_resz > img_resz.shape[1]: xma_resz = img_resz.shape[1]
+                    if yma_resz > img_resz.shape[0]: yma_resz = img_resz.shape[0]
+                    box_resz = [xmi_resz, ymi_resz, xma_resz, yma_resz]
 
-                # reszd box coords
-                xmi_resz, ymi_resz, xma_resz, yma_resz = box_resz[0]
-                # clip to image dims
-                if xmi_resz < 0: xmi_resz = 0
-                if ymi_resz < 0: ymi_resz = 0
-                if xma_resz > img_resz.shape[1]: xma_resz = img_resz.shape[1]
-                if yma_resz > img_resz.shape[0]: yma_resz = img_resz.shape[0]
-                box_resz = [xmi_resz, ymi_resz, xma_resz, yma_resz]
-#                 print(box_resz)
+                    # compute resized prompt coordinates based on image resize
+                    new_size = img_resz.shape[:2]
 
-                # compute box center
-                x_cent_resz = (xmi_resz + (xma_resz - xmi_resz)//2)
-                y_cent_resz = (ymi_resz + (yma_resz - ymi_resz)//2)
+                    x_scale = new_size[1] / orig_size
+                    y_scale = new_size[0] / orig_size
 
-                # add noise to center point
-                x_cent_resz = self.noise(val = x_cent_resz,
-                    size = (xma_resz - xmi_resz), pct = 0.1)
+                    x_prompt_rel_resize = x_prompt_rel * x_scale
+                    y_prompt_rel_resize = y_prompt_rel * y_scale
 
-                y_cent_resz = self.noise(val = y_cent_resz,
-                    size = (yma_resz - ymi_resz), pct = 0.1)
+                    prompt_resz = (x_prompt_rel_resize, y_prompt_rel_resize)
 
-                center_resz = (x_cent_resz, y_cent_resz)
+                    imgs_crop.append(img_resz)
+                    boxs_crop.append(box_resz)
+                    prompts_crop.append(prompt_resz)
 
-                imgs_crop.append(img_resz)
-                boxs_crop.append(box_resz)
-                centers_crop.append(center_resz)
+                # no resize
+                else:
+                    imgs_crop.append(np.array(img_crop))
+                    boxs_crop.append([bbox])
+                    prompts_crop.append((x_prompt_rel, y_prompt_rel))
 
-            # no resize
-            else:
-                imgs_crop.append(np.array(img_crop))
-                boxs_crop.append([bbox])
+                cats_crop.append(cat)
 
-                # add noise to center point
-                x_cent_crop = self.noise(
-                    val = (xmax_crop - xmin_crop)//2,
-                    size = (xmax_crop - xmin_crop), pct = 0.1)
-                y_cent_crop = self.noise(
-                    val = (ymax_crop - ymin_crop)//2,
-                    size = (ymax_crop - ymin_crop), pct = 0.1)
-
-                centers_crop.append((x_cent_crop,y_cent_crop))
-
-#         print(boxs_crop)
-
-        return imgs_crop, boxs_crop, centers_crop
+        return imgs_crop, boxs_crop, prompts_crop, cats_crop
 
 
 
@@ -587,30 +581,32 @@ class ConversionDataset():
 
         """
         # load full img and annos
-        img, bboxs, cntrs, cats = self.load_img(img_id)
+        img, bboxs, prompts, cats = self.load_img(img_id)
 
         # crop objs
-        crop_imgs, crop_bboxs, crop_cntrs = self.crop_objs(
+        crop_imgs, crop_bboxs, crop_prompts, crop_cats = self.crop_objs(
             img = img,
             bboxs = np.array(bboxs),
-            cntrs = cntrs,
+            prompts = prompts,
+            cats = cats,
             inp_crop_size = self.crop_size,
             crop_noise = self.crop_noise,
             box_noise = self.box_noise,
             img_size = self.img_size
         )
 
+#         print(f'Cats: {len(crop_cats)}  Crop prompts: {len(crop_prompts)}')
 
         # loop over crops and save
-        for new_img, box, cntr, cat in zip(crop_imgs, crop_bboxs,
-                                           crop_cntrs, cats):
+        for new_img, box, prompt, cat in zip(crop_imgs, crop_bboxs,
+                                           crop_prompts, crop_cats):
             # save img
             new_img_name = f'img_{self.img_idx}_anno_{self.anno_idx}_{cat}_.jpg'
             new_img_pth = self.dst/new_img_name
             img = Image.fromarray(new_img)
             img.save(new_img_pth)
 
-            # construct append annotation info to lists
+            # construct and append annotation info to lists
 #             print(f'npbox: {npbox}')
 #             box = npbox[0]
 #             print(f'box: {box}')
@@ -629,7 +625,7 @@ class ConversionDataset():
             self.new_img_ids.append(self.img_idx)
             self.new_box_annos.append(coco_box)
             self.new_areas.append(area)
-            self.new_cntrs.append(cntr)
+            self.new_prompts.append(prompt)
             self.new_anno_ids.append(self.anno_idx)
             self.new_cats.append(cat)
 
@@ -681,10 +677,10 @@ class ConversionDataset():
         images = []
         annotations = []
         size = self.img_size if self.resize else self.crop_size
-        for img_id, img_name, anno_id, box, area, center, cat in zip(
+        for img_id, img_name, anno_id, box, area, prompt, cat in zip(
             self.new_img_ids, self.new_img_names,
             self.new_anno_ids, self.new_box_annos,
-            self.new_areas, self.new_cntrs, self.new_cats):
+            self.new_areas, self.new_prompts, self.new_cats):
 
             images.append({
                 'license': 0,
@@ -698,7 +694,7 @@ class ConversionDataset():
                 'id': anno_id,
                 'bbox': box,
                 'area': area,
-                'center': center,
+                'prompt': prompt,
                 'category_id': self.coco.getCatIds(catNms = cat)[0],
                 'iscrowd': 0})
 
@@ -766,15 +762,14 @@ class ConversionDataset():
                 json.dump(data, file)
 
         # move images
-
-        print('Moving train images')
-        for idx in tqdm(idxs[:splt]):
+        for idx in tqdm(idxs[:splt], desc = 'Moving train images'):
+#             tqdm.write('Moving train images')
             fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
             fname = os.path.basename(fpath)
             shutil.move(fpath, self.dst/f'train/{fname}')
 
-        print('Moving val images')
-        for idx in tqdm(idxs[splt:]):
+        for idx in tqdm(idxs[splt:], desc = 'Moving val images'):
+#             tqdm.write('Moving val images')
             fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
             fname = os.path.basename(fpath)
             shutil.move(fpath, self.dst/f'val/{fname}')
