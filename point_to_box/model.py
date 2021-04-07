@@ -69,6 +69,7 @@ class EfficientLoc():
 
         model = torch.nn.Sequential(
             model,
+#             torch.nn.AdaptiveAvgPool2d(),
             torch.nn.Dropout(0.2),
             torch.nn.Flatten(),
             torch.nn.Linear(inter_channel, out_features),
@@ -206,6 +207,18 @@ class EfficientLoc():
     def load(self, model_state_dict):
         """Load model weights from state-dict"""
         self.model.load_state_dict(model_state_dict)
+
+    def _export(self, dst, dummy, verbose = True):
+        """Export model as onnx graph
+
+        **Params**
+
+        dst : destination including .onnx file name
+
+        dummy : dummy variable for export structure, shape (B,C,W,H)
+        """
+        self.model.eval()
+        torch.onnx.export(self.model, dummy, dst, verbose = verbose)
 
 # Cell
 class CIoU(torch.nn.Module):
