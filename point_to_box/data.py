@@ -359,12 +359,19 @@ class ConversionDataset():
         # TODO:
         # figure out how to transfer license data from original to crop
         # licenses = []
+        num_pos = []
+
         for i in range(num_objs):
             xmin = coco_annos[i]['bbox'][0]
             ymin = coco_annos[i]['bbox'][1]
             xmax = xmin + coco_annos[i]['bbox'][2]
             ymax = ymin + coco_annos[i]['bbox'][3]
             bboxs.append([xmin, ymin, xmax, ymax])
+
+#             if xmin >= 0 and ymin >= 0 and xmax >= 0 and ymax >= 0:
+#                 num_pos.append(True)
+#             else:
+#                 num_pos.append(False)
 
             if 'center' in coco_annos[i]:
                 xcent = coco_annos[i]['center'][0]
@@ -381,6 +388,9 @@ class ConversionDataset():
         prompts = utils.get_prompt_points(coco_annos, self.n)
 
         assert len(prompts) == len(bboxs), 'Prompt and box length are not the same'
+
+#         if sum(num_pos) != len(prompts):
+#             print(f'Not same length!!: {sum(num_pos)}  !=  {len(prompts)}')
 
         return img, bboxs, prompts, cats #cntrs,
 
@@ -410,7 +420,7 @@ class ConversionDataset():
 
 
     def crop_objs(self, img, bboxs, prompts, cats, inp_crop_size = 100,
-        crop_noise = 0.1, resize = True, img_size = 512, box_noise = 0.2):
+        crop_noise = 0.1, resize = True, img_size = 512, box_noise = 0.05):
         """
         Crop individual square images for each object (box) in img
 
@@ -449,15 +459,34 @@ class ConversionDataset():
 
         imgs_crop, boxs_crop, prompts_crop, cats_crop = [], [], [], []
 
+        num_pos = []
+        wrong = 0
+
         # loop over boxes and prompt sets
         for box, prompt, cat in zip(bboxs, prompts, cats):
 
+
             xmin, ymin, xmax, ymax = box
             boxw, boxh = xmax - xmin, ymax - ymin
-            box_cntr = (xmin + boxw/2, ymin + boxh/2)
+            box_cntr = (xmin + (boxw/2), ymin + (boxh/2))
+
+            # debug
+            if xmin >= 0 and ymin >= 0 and xmax >= 0 and ymax >= 0:
+                num_pos.append(True)
+            else:
+                num_pos.append(False)
+
 
             # loop over points in prompt (could be more than one per object)
             for point in prompt:
+
+#                 print(f'Box cords before transform: {xmin} {ymin} {xmax} {ymax}')
+#                 print(f'Prompt point: {point}')
+
+#                 if (point[0] > xmax) or (point[0] < xmin):
+#                     print(f'X prompt {point[0]} box x bounds: {xmin}, {xmax}')
+#                 if (point[1] > ymax) or (point[1] < ymin):
+#                     print(f'Y prompt {point[1]} box y bounds: {ymin}, {ymax}')
 
                 # add noise to corp size for each prompt point
                 crop_size = self.noise(val = inp_crop_size,
@@ -475,8 +504,16 @@ class ConversionDataset():
 #                     print(f'Updated crop size : {crop_size}')
 #                     too_big = (boxw > crop_size * 0.9) or (boxh > crop_size * 0.9)
                 # clip crop size to shortest img dimension
-                if crop_size > min(w, h): crop_size = min(w, h)
+                if crop_size > min(w, h):
+#                     print('Crop too big')
+                    crop_size = min(w, h)
 
+                if crop_size < max(boxw, boxh):
+                    continue
+
+#                 print(f'Img w: {w}  Img h: {h}')
+#                 print(f'Crop size: {crop_size}')
+#                 print(f'Box width: {boxw}  Box height: {boxh}')
 
 #                 if (boxw > crop_size * 0.9) or (boxh > crop_size * 0.9):
 #                     # make crop-size larger
@@ -488,12 +525,44 @@ class ConversionDataset():
                 cimg = img.copy()
 
                 # starting corp cords
-                left = box_cntr[0] - crop_size / 2
-                upper = box_cntr[1] - crop_size / 2
+                left = box_cntr[0] - (crop_size / 2)
+                upper = box_cntr[1] - (crop_size / 2)
+
+#                 print(f'Before noise left: {left}  upper: {upper}')
+
+
+                # max difference the starting crop values (left, upper) can be adjusted before
+                # interfering with the object box bounds
+                max_wd = (xmin - left) - 1
+                max_hd = (ymin - upper) - 1
+                old_left = left
+                old_upper = upper
 
                 # add noise so box isn't always exactly in the center of crop
                 left = self.noise(val = left, size = crop_size, pct = box_noise)
                 upper = self.noise(val = upper, size = crop_size, pct = box_noise)
+
+#                 print(f'After noise left: {left}  upper: {upper}')
+
+                # check if noise:
+                # - pushed crop bounds into box bounds
+#                 if left > xmin: left = xmin - 1
+#                 if upper > ymin: upper = ymin - 1
+                # - pushed crop bounds too far relative to box bounds
+                if abs(left - old_left) > max_wd:
+                    if left > old_left:
+                        left = old_left + max_wd
+                    if left < old_left:
+                        left = old_left - max_wd
+
+                if abs(upper - old_upper) > max_hd:
+                    if upper > old_upper:
+                        upper = old_upper + max_hd
+                    if upper < old_upper:
+                        upper = old_upper - max_hd
+
+
+
                 right, lower = left + crop_size, upper + crop_size
 
                 # check and correct for out of bounds crop
@@ -505,13 +574,16 @@ class ConversionDataset():
                     lower = upper + crop_size
                 if right > w:
                     right = w
-                    left = w - crop_size
+                    left = right - crop_size
                 if lower > h:
                     lower = h
-                    upper = h - crop_size
+                    upper = lower - crop_size
 
                 # compute new box coordinates: [xmin, ymin, xmax, ymax]
                 xmin_crop = (xmin - left)
+#                 if xmin_crop < 0:
+#                     print('-'*10)
+#                     print(left)
                 ymin_crop = (ymin - upper)
                 xmax_crop = (xmax - left)
                 ymax_crop = (ymax - upper)
@@ -520,6 +592,19 @@ class ConversionDataset():
                 # compute relative prompt cords based on image crop
                 x_prompt_rel = point[0] - left
                 y_prompt_rel = point[1] - upper
+
+
+                # debug
+#                 print(f'Relative box cords: {xmin_crop} {ymin_crop} {xmax_crop} {ymax_crop}')
+#                 print(f'Relative prompt point: {x_prompt_rel}  {y_prompt_rel}')
+
+
+
+                # check for out of bounds
+                if ((x_prompt_rel > crop_size) or (y_prompt_rel > crop_size)):
+                    print('-'*100)
+                    print(f'X rel: {x_prompt_rel}  Y rel: {y_prompt_rel}  Crop size: {crop_size}')
+                    continue
 
                 # crop expects 4-tupple: (left, upper, right, lower)
                 img_crop = img.crop((left, upper, right, lower))
@@ -546,6 +631,17 @@ class ConversionDataset():
                     x_prompt_rel_resize = x_prompt_rel * x_scale
                     y_prompt_rel_resize = y_prompt_rel * y_scale
 
+
+                    # debug
+#                     print(f'Resized box cords: {xmi_resz} {ymi_resz} {xma_resz} {yma_resz}')
+#                     print(f'Resized prompt point: {x_prompt_rel_resize}  {y_prompt_rel_resize}')
+
+
+#                     check for out of bounds:
+                    if ((x_prompt_rel_resize > img_size) or (y_prompt_rel_resize > img_size)):
+                        print(f'X rel resize: {x_prompt_rel_resize}  Y rel resize: {y_prompt_rel_resize}  Img size: {img_size}')
+#                         wrong += 1
+
                     prompt_resz = (x_prompt_rel_resize, y_prompt_rel_resize)
 
                     imgs_crop.append(img_resz)
@@ -559,6 +655,9 @@ class ConversionDataset():
                     prompts_crop.append((x_prompt_rel, y_prompt_rel))
 
                 cats_crop.append(cat)
+
+#         if sum(num_pos) != (len(prompts_crop)/self.n):
+#         print(f'Num wrong: {wrong}')
 
         return imgs_crop, boxs_crop, prompts_crop, cats_crop
 
@@ -768,13 +867,7 @@ class ConversionDataset():
 
         # move images
         for idx in tqdm(idxs[:splt], desc = 'Moving train images'):
-#             tqdm.write('Moving train images')
-#             fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
-#             fname = os.path.basename(fpath)
             shutil.move(self.dst/idx_name_map[idx], self.dst/f'train/{idx_name_map[idx]}')
 
         for idx in tqdm(idxs[splt:], desc = 'Moving val images'):
-#             tqdm.write('Moving val images')
-#             fpath = glob.glob(str(self.dst/f'*_{idx}_*_{idx}_*.jpg'))[0]
-#             fname = os.path.basename(fpath)
             shutil.move(self.dst/idx_name_map[idx], self.dst/f'val/{idx_name_map[idx]}')

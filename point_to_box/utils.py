@@ -272,7 +272,7 @@ def get_prompt_points(anns, n):
             else:
                 # rand point from triangle distribution
                 rand_pt = Point([random.triangular(xmin, xmax, xmin + (xmax-xmin)/2),
-                                random.triangular(ymin, ymax, ymin + (ymin-ymax)/2)])
+                                random.triangular(ymin, ymax, ymin + (ymax-ymin)/2)])
                 if rand_pt.within(poly):
                     ppoint.append((rand_pt.x, rand_pt.y))
         ppoints.append(ppoint)

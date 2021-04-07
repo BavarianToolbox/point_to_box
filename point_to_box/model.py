@@ -34,6 +34,7 @@ class EfficientLoc():
         self.out_features = out_features
         self.export = export
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        self.data_parallel = False
         self.model = self.get_model(version = self.version,
             in_channels = self.in_channels, out_features  = self.out_features)
 
@@ -80,6 +81,8 @@ class EfficientLoc():
         if torch.cuda.device_count() > 1:
             print(f'Using {torch.cuda.device_count()} GPUs')
             model = torch.nn.DataParallel(model)
+            self.data_parallel = True
+
 
         model.to(self.device)
 
@@ -192,9 +195,12 @@ class EfficientLoc():
         if info:
             torch.save(info, dst)
         else:
+            model_dict = self.model.state_dict()
+            if self.data_parallel:
+                model_dict = self.model.module.state_dict()
             torch.save({
                 'base_arch' : self.version,
-                'model_state_dict' : self.model.state_dict(),
+                'model_state_dict' : model_dict,
             }, dst)
 
     def load(self, model_state_dict):
