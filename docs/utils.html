@@ -40,7 +40,7 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_norm_stats" class="doc_header"><code>get_norm_stats</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L14" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_norm_stats</code>(<strong><code>loaders</code></strong>)</p>
+<h4 id="get_norm_stats" class="doc_header"><code>get_norm_stats</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L16" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_norm_stats</code>(<strong><code>loaders</code></strong>)</p>
 </blockquote>
 <p>Returns normalization stats (mean and std) computed across one or more image dataloaders.</p>
 <p><strong>Parameters</strong></p>
@@ -93,7 +93,7 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="draw_rect" class="doc_header"><code>draw_rect</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L43" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>draw_rect</code>(<strong><code>im</code></strong>, <strong><code>cords</code></strong>, <strong><code>box_format</code></strong>=<em><code>None</code></em>, <strong><code>color</code></strong>=<em><code>None</code></em>)</p>
+<h4 id="draw_rect" class="doc_header"><code>draw_rect</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L45" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>draw_rect</code>(<strong><code>im</code></strong>, <strong><code>cords</code></strong>, <strong><code>box_format</code></strong>=<em><code>None</code></em>, <strong><code>color</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>Draw one or more rectangls on an image.</p>
 <p><strong>Parameters</strong></p>
@@ -155,7 +155,7 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="convert_cords" class="doc_header"><code>convert_cords</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L129" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>convert_cords</code>(<strong><code>cords</code></strong>, <strong><code>img_dims</code></strong>, <strong><code>cord_format</code></strong>)</p>
+<h4 id="convert_cords" class="doc_header"><code>convert_cords</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L131" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>convert_cords</code>(<strong><code>cords</code></strong>, <strong><code>img_dims</code></strong>, <strong><code>cord_format</code></strong>)</p>
 </blockquote>
 <p>Convert bounding box coordinates</p>
 <p><strong>Parameters</strong></p>
@@ -198,7 +198,7 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="resize" class="doc_header"><code>resize</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L171" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>resize</code>(<strong><code>size</code></strong>, <strong><code>img</code></strong>, <strong><code>bbox</code></strong>)</p>
+<h4 id="resize" class="doc_header"><code>resize</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L173" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>resize</code>(<strong><code>size</code></strong>, <strong><code>img</code></strong>, <strong><code>bbox</code></strong>)</p>
 </blockquote>
 <p>Resize an image in accordance to 'image_letter_box' function in darknet</p>
 <p><strong>Params</strong></p>
@@ -337,7 +337,7 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="noise" class="doc_header"><code>noise</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L222" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>noise</code>(<strong><code>val</code></strong>, <strong><code>size</code></strong>, <strong><code>pct</code></strong>=<em><code>0.2</code></em>)</p>
+<h4 id="noise" class="doc_header"><code>noise</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L224" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>noise</code>(<strong><code>val</code></strong>, <strong><code>size</code></strong>, <strong><code>pct</code></strong>=<em><code>0.2</code></em>)</p>
 </blockquote>
 <p>Add noise to value</p>
 <p><strong>Params</strong></p>
@@ -375,11 +375,48 @@ nb_path: "nbs/00_utils.ipynb"
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h4 id="get_prompt_points" class="doc_header"><code>get_prompt_points</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L246" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_prompt_points</code>(<strong><code>anns</code></strong>, <strong><code>n</code></strong>)</p>
+<h4 id="get_prompt_points" class="doc_header"><code>get_prompt_points</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L248" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>get_prompt_points</code>(<strong><code>anns</code></strong>, <strong><code>n</code></strong>, <strong><code>prompt_format</code></strong>)</p>
 </blockquote>
-<p>Get list of object prompt points by sampeling random points in the object polygons</p>
+<p>Get list of object prompt points by sampeling random points from the object polygon or box</p>
 <p><strong>Params</strong></p>
 <p>anns : coco-style annotation dict</p>
+<p>n : number of prompt points to create</p>
+<p>prompt_format : 'poly' use segmentation info, 'box' use bbox info</p>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+</div>
+    {% endraw %}
+
+    {% raw %}
+    
+<div class="cell border-box-sizing code_cell rendered">
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+<div class="output_markdown rendered_html output_subarea ">
+<h4 id="yolo_to_coco" class="doc_header"><code>yolo_to_coco</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/utils.py#L305" class="source_link" style="float:right">[source]</a></h4><blockquote><p><code>yolo_to_coco</code>(<strong><code>imgs_path</code></strong>, <strong><code>lbls_path</code></strong>)</p>
+</blockquote>
+<p>Convert multiple yolo .txt annotations into a single coco-style json</p>
+<p><strong>Params</strong></p>
+<p>imgs_path : path to image directory</p>
+<p>lbls_path : path to annotation directory containing .txt files</p>
 
 </div>
 

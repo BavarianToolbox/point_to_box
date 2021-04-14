@@ -209,7 +209,7 @@ If iterable is specified the tuple is initialized from iterable's items.</p>
 
 
 <div class="output_markdown rendered_html output_subarea ">
-<h2 id="ConversionDataset" class="doc_header"><code>class</code> <code>ConversionDataset</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/data.py#L260" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConversionDataset</code>(<strong><code>data_path</code></strong>, <strong><code>anno_fname</code></strong>, <strong><code>dst_path</code></strong>, <strong><code>crop_size</code></strong>=<em><code>100</code></em>, <strong><code>crop_noise</code></strong>=<em><code>0.1</code></em>, <strong><code>resize</code></strong>=<em><code>True</code></em>, <strong><code>img_size</code></strong>=<em><code>512</code></em>, <strong><code>box_noise</code></strong>=<em><code>0.2</code></em>, <strong><code>n</code></strong>=<em><code>1</code></em>, <strong><code>new_anno_fname</code></strong>=<em><code>None</code></em>)</p>
+<h2 id="ConversionDataset" class="doc_header"><code>class</code> <code>ConversionDataset</code><a href="https://github.com/BavarianToolbox/point_to_box/tree/master/point_to_box/data.py#L260" class="source_link" style="float:right">[source]</a></h2><blockquote><p><code>ConversionDataset</code>(<strong><code>data_path</code></strong>, <strong><code>anno_fname</code></strong>, <strong><code>dst_path</code></strong>, <strong><code>crop_size</code></strong>=<em><code>100</code></em>, <strong><code>crop_noise</code></strong>=<em><code>0.1</code></em>, <strong><code>resize</code></strong>=<em><code>True</code></em>, <strong><code>img_size</code></strong>=<em><code>512</code></em>, <strong><code>box_noise</code></strong>=<em><code>0.2</code></em>, <strong><code>n</code></strong>=<em><code>1</code></em>, <strong><code>prompt_format</code></strong>=<em><code>'poly'</code></em>, <strong><code>new_anno_fname</code></strong>=<em><code>None</code></em>)</p>
 </blockquote>
 <p>Class to convert coco-style datasets and annotations into point-to-box style datasets and annotations</p>
 <p><strong>Params</strong></p>
@@ -222,6 +222,7 @@ If iterable is specified the tuple is initialized from iterable's items.</p>
 <p>img_size : size of new images is 'resize' is True</p>
 <p>box_noise : percentage of possible box noise</p>
 <p>n : number of samples to create form each object</p>
+<p>prompt_format : from for object prompt point creation, poly or box</p>
 
 </div>
 

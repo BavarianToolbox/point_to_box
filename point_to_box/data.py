@@ -280,10 +280,13 @@ class ConversionDataset():
     box_noise : percentage of possible box noise
 
     n : number of samples to create form each object
+
+    prompt_format : from for object prompt point creation, poly or box
     """
     def __init__(self, data_path, anno_fname, dst_path,
                  crop_size = 100, crop_noise = 0.1, resize = True,
-                 img_size = 512, box_noise = 0.2, n = 1, new_anno_fname = None):
+                 img_size = 512, box_noise = 0.2, n = 1,
+                 prompt_format = 'poly', new_anno_fname = None):
         # inputs for dataset processing
         self.data = data_path
         self.annos = anno_fname
@@ -296,6 +299,7 @@ class ConversionDataset():
         self.img_size = img_size
         self.box_noise = box_noise
         self.n = n
+        self.prompt_format = prompt_format
         if new_anno_fname is None:
             self.new_annos = 'individual_'+ self.annos
         else:
@@ -385,7 +389,7 @@ class ConversionDataset():
 
             cats.append(cat[0]['name'])
 
-        prompts = utils.get_prompt_points(coco_annos, self.n)
+        prompts = utils.get_prompt_points(coco_annos, self.n, self.prompt_format)
 
         assert len(prompts) == len(bboxs), 'Prompt and box length are not the same'
 
