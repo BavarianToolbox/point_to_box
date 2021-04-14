@@ -8,3 +8,5 @@ jupyter
 ipykernel
 tqdm
 Shapely
+fastcore
+fastai
