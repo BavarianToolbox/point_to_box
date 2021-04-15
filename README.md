@@ -143,7 +143,3 @@ effloc = model.EfficientLoc(version='efficientnet-b0')
 ```
 
 ### Export to onnx
-
-```python
-effloc._export('effloc_coco2017val_v2.onnx', dummy_input = torch.randn(1, 4, 224, 224))
-```
